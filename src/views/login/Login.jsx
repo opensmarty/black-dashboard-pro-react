@@ -1,6 +1,7 @@
 import React from "react";
 import { browserHistory } from 'react-router';
-import $ from 'jquery';
+import axios from "axios";
+
 // reactstrap components
 import {
   Button,
@@ -23,8 +24,8 @@ class Login extends React.Component {
   constructor(props) {
     super();
     this.state = {
-      username: '',
-      password: ''
+      Email: '',
+      Password: ''
     };
 
     this.setUserName = this.setUserName.bind(this);
@@ -32,29 +33,27 @@ class Login extends React.Component {
   }
 
 
+
   enviaLogin(evento) {
     evento.preventDefault();
-    $.ajax({
-      url: 'http://localhost:8080/api/users/login',
-      contentType: 'application/json',
-      dataType: 'json',
-      type: 'post',
-      data: JSON.stringify({ username: this.state.username, password: this.state.password }),
-      success: function (novaresposta) {
-        console.log("novaresposta");
-      }.bind(this),
-      error: function (title) {
-        console.log("erro");
-      }
-    });
+    axios.post('http://localhost:8080/api/users/login', { Email: this.state.Email, Password: this.state.Password })
+      .then(res => {
+        alert("Good Job!");
+        return res.json();
+      })
+      .catch(error => {
+        console.log(error);
+      });
   }
 
+
+
   setUserName(evento) {
-    this.setState({ username: evento.target.value });
+    this.setState({ Email: evento.target.value });
   }
 
   setPassword(evento) {
-    this.setState({ password: evento.target.value });
+    this.setState({ Password: evento.target.value });
   }
 
   componentDidMount() {
@@ -89,7 +88,7 @@ class Login extends React.Component {
                           <i className="tim-icons icon-email-85" />
                         </InputGroupText>
                       </InputGroupAddon>
-                      <Input placeholder="Email" type="text" value={this.state.username} onChange={this.setUserName} />
+                      <Input placeholder="Email" type="text" value={this.state.Email} onChange={this.setUserName} />
                     </InputGroup>
                     <InputGroup>
                       <InputGroupAddon addonType="prepend">
@@ -97,7 +96,7 @@ class Login extends React.Component {
                           <i className="tim-icons icon-lock-circle" />
                         </InputGroupText>
                       </InputGroupAddon>
-                      <Input placeholder="Password" type="password" value={this.state.password} onChange={this.setPassword} />
+                      <Input placeholder="Password" type="password" value={this.state.Password} onChange={this.setPassword} />
                     </InputGroup>
                   </CardBody>
                   <CardFooter>

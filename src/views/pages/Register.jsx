@@ -1,6 +1,5 @@
 import React from "react";
-import $ from 'jquery';
-
+import axios from "axios";
 // react component used to create sweet alerts
 import ReactBSAlert from "react-bootstrap-sweetalert";
 import logo from "assets/img/logo.png";
@@ -37,8 +36,8 @@ class Register extends React.Component {
       Alert: null
     };
 
+    this.registerUser = this.registerUser.bind(this);
 
-    this.createUser = this.createUser.bind(this);
     this.setName = this.setName.bind(this);
     this.setEmail = this.setEmail.bind(this);
     this.setPassword = this.setPassword.bind(this);
@@ -78,42 +77,16 @@ class Register extends React.Component {
 
 
 
-  teste(evento) {
-
-
+  registerUser(evento) {
     evento.preventDefault();
-    fetch('http://localhost:8080/api/users/create', {
-      method: 'post',
-      body: JSON.stringify({ Name: this.state.Name, Email: this.state.Email, Password: this.state.Password }),
-    }).then(function(response) {
-      return response.json(); 
-    }).then(function(data) {
-      console.log(data)
-    });
-  }
-
-
-  createUser(evento) {
-
-
-
-
-    evento.preventDefault();
-    $.ajax({
-      url: 'http://localhost:8080/api/users/create',
-      contentType: 'application/json',
-      dataType: 'json',
-      type: 'post',
-      data: JSON.stringify({ Name: this.state.Name, Email: this.state.Email, Password: this.state.Password }),
-
-      success: function (message, status) {
-        console.log(message)
-
-      }.bind(this),
-      error: function () {
-        console.log("erro");
-      }
-    });
+    axios.post('http://localhost:8080/api/users/create', { Name: this.state.Name, Email: this.state.Email, Password: this.state.Password })
+      .then(res => {
+        alert("Good Job!");
+        return res.json();
+      })
+      .catch(error => {
+        console.log(error);
+      });
   }
 
 
@@ -173,10 +146,10 @@ class Register extends React.Component {
                       alt="..."
                       src={require("assets/img/card-primary.png")}
                     />
-                    <CardTitle tag="h4">Register</CardTitle>                
+                    <CardTitle tag="h4">Register</CardTitle>
                   </CardHeader>
                   <CardBody>
-                    <Form className="form" onSubmit={this.createUser}>
+                    <Form className="form" onSubmit={this.registerUser}>
                       <InputGroup>
                         <InputGroupAddon addonType="prepend">
                           <InputGroupText>
@@ -218,7 +191,7 @@ class Register extends React.Component {
                       className="btn-round"
                       color="primary"
                       href="#pablo"
-                      onClick={this.teste}
+                      onClick={this.registerUser}
                       size="lg"
                       type="submit"
                     >
