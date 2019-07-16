@@ -33,7 +33,7 @@ class Footer extends React.Component {
           </ul>
           <div className="copyright">
             © {new Date().getFullYear()} made {" "}
-            <a href="javascript:void(0)" target="_blank">
+            <a href="javascript:void(0)" target="_blank" color="danger">
               OBIE Comfort Solutions
             </a>
           </div>

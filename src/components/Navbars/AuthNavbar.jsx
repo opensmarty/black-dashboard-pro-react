@@ -67,7 +67,7 @@ class AuthNavbar extends React.Component {
               <NavItem>
                 <NavLink
                   to="/auth/login"
-                  className="nav-link text-primary"
+                  className="nav-link text-danger"
                 >
                   <i className="tim-icons icon-minimal-left" /> Back to
                   Login

@@ -67,12 +67,6 @@ const routes = [
       }, 
     ]
   },
- 
-
-
-
-
-  
   {
     collapse: true,
     name: "Auth",
@@ -100,7 +94,6 @@ const routes = [
       },  
     ]
   },
-
 ];
 
 export default routes;

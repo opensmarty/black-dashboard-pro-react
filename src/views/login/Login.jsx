@@ -1,6 +1,6 @@
 import React from "react";
-import {BrowserRouter as Router } from  'react-router-dom';
-import {browserHistory} from  'react-router';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { browserHistory } from 'react-router';
 import axios from "axios";
 import { render } from 'react-dom'
 
@@ -28,8 +28,8 @@ class Login extends React.Component {
     super();
     this.state = {
       Email: '',
-      Password: '', 
-      msg:''
+      Password: '',
+      msg: ''
     };
 
     this.setUserName = this.setUserName.bind(this);
@@ -49,9 +49,9 @@ class Login extends React.Component {
         }
       })
       .then(token => {
-        localStorage.setItem('auth-token', token);      
+        localStorage.setItem('auth-token', token);
         browserHistory.push('/admin/dashboard');
-        window.location.reload(); 
+        window.location.reload();
       })
       .catch(error => {
         this.setState({ msg: error.message });
@@ -86,9 +86,9 @@ class Login extends React.Component {
                   <CardHeader>
                     <img
                       alt="..."
-                      src={require("assets/img/card-primary.png")}
+                      src={require("assets/img/card-danger.png")}
                     />
-                    <CardTitle tag="h1">Log in</CardTitle>
+                   <CardTitle tag="h1">Log in</CardTitle>
                   </CardHeader>
                   <CardBody>
                     <InputGroup>
@@ -112,34 +112,12 @@ class Login extends React.Component {
                     <Button
                       type="submit"
                       className="mb-3"
-                      color="primary"
+                      color="danger"
                       value="login"
                       size="lg"
                     >
                       Get Started
                     </Button>
-                    <div className="pull-left">
-                      <h6>
-                        <a
-                          className="link footer-link"
-
-
-                        >
-                          Create Accountd
-                        </a>
-                      </h6>
-                    </div>
-                    <div className="pull-right">
-                      <h6>
-                        <a
-                          className="link footer-link"
-
-
-                        >
-                          Need Help?
-                        </a>
-                      </h6>
-                    </div>
                   </CardFooter>
                 </Card>
               </Form>
