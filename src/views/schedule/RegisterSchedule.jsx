@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import moment from "moment";
+import Moment from "react-moment";
+
 import { Formik, Field } from "formik";
 import ReactDatetime from "react-datetime";
 import axios from "axios";
@@ -27,6 +29,7 @@ import {
   FormGroup,
   Button
 } from "reactstrap";
+import { format } from 'util';
 
 //const SweetAlert = withSwalInstance(swal);
 
@@ -49,7 +52,8 @@ class RegisterSchedule extends React.Component {
       teamSelected: [],
 
       //variaveis do form
-      Date: moment(),
+      DateStart: moment(),
+      DateEnd: moment(),
       JobDescription: '',
       Address: '',
       City: '',
@@ -74,7 +78,8 @@ class RegisterSchedule extends React.Component {
 
     this.toggle = this.toggle.bind(this);
     this.enviaForm = this.enviaForm.bind(this);
-    this.setDate = this.setDate.bind(this);
+    this.setDateStart = this.setDateStart.bind(this);
+    this.setDateEnd = this.setDateEnd.bind(this);
     this.setJobDescription = this.setJobDescription.bind(this);
     this.setAddress = this.setAddress.bind(this);
     this.setCity = this.setCity.bind(this);
@@ -88,8 +93,12 @@ class RegisterSchedule extends React.Component {
 
   }
 
-  setDate(evento) {
-    this.setState({ Date: moment(evento) });
+  setDateStart(evento) {
+    this.setState({ DateStart: moment(evento) });
+  }
+
+  setDateEnd(evento) {
+    this.setState({ DateEnd: moment(evento) });
   }
 
   setJobDescription(evento) {
@@ -149,7 +158,8 @@ class RegisterSchedule extends React.Component {
   //Registra dados do schedule
   enviaForm(evento) {
     var data = {
-      Date: this.state.Date,
+      DateStart: this.state.DateStart,
+      DateEnd: this.state.DateEnd,
       Address: this.state.Address,
       City: this.state.Address,
       StateDesc: this.state.StateDesc,
@@ -259,6 +269,9 @@ class RegisterSchedule extends React.Component {
     this.listaSchedule();
     this.listaTeam();
     this.verificaAllSelect();
+
+
+
   }
 
   //Abre o modal.
@@ -301,24 +314,8 @@ class RegisterSchedule extends React.Component {
     }
     const closeBtn = <button className="close" onClick={this.toggle}>&times;</button>;
 
-
-
-
     return (
-
-
       <div className="content">
-
-
-
-
-
-
-
-
-
-
-
         <Formik initialValues={{ roles: [] }} onSubmit={values => this.registerTeam({ values })} >
           {formik => (
             <Modal isOpen={this.state.modal} toggle={this.toggle} className={this.props.className}>
@@ -370,19 +367,35 @@ class RegisterSchedule extends React.Component {
               </CardHeader>
               <CardBody>
                 <Form action="#" onSubmit={this.enviaForm}>
-                  <label>Date Schedule</label>
+                  <label>Date Start</label>
                   <FormGroup>
                     <ReactDatetime
                       inputProps={{
                         className: "form-control",
                         placeholder: "Date scheduling",
                       }}
-                      id="Date"
-                      name="Date"
-                      value={this.state.Date}
-                      onChange={this.setDate}
+                      id="DateStart"
+                      name="DateStart"
+                      value={this.state.DateStart}
+                      onChange={this.setDateStart}
                     />
                   </FormGroup>
+
+                  <label>Prediction Finish</label>
+                  <FormGroup>
+                    <ReactDatetime
+                      inputProps={{
+                        className: "form-control",
+                        placeholder: "Date scheduling",
+                      }}
+                      id="DateEnd"
+                      name="DateEnd"
+                      value={this.state.DateEnd}
+                      onChange={this.setDateEnd}
+                    />
+                  </FormGroup>
+
+
                   <label>Address</label>
                   <FormGroup>
                     <Input type="text" id="Address" name="Address" value={this.state.Address} onChange={this.setAddress} />
@@ -488,8 +501,15 @@ class RegisterSchedule extends React.Component {
                       }
                     },
                     {
-                      Header: "Date",
-                      accessor: "Date",
+                      Header: "Date Start",
+                      accessor: "DateStart",
+                      id: "DateStart",
+                      accessor: "DateStart"
+                      
+                    },
+                    {
+                      Header: "Prediction Finish",
+                      accessor: "DateEnd",
                     },
                     {
                       Header: "Last Name",

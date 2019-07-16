@@ -1,6 +1,9 @@
 import React from "react";
-import { browserHistory } from 'react-router';
+import {BrowserRouter as Router } from  'react-router-dom';
+import {browserHistory} from  'react-router';
 import axios from "axios";
+import { render } from 'react-dom'
+
 
 // reactstrap components
 import {
@@ -25,33 +28,41 @@ class Login extends React.Component {
     super();
     this.state = {
       Email: '',
-      Password: ''
+      Password: '', 
+      msg:''
     };
 
     this.setUserName = this.setUserName.bind(this);
     this.setPassword = this.setPassword.bind(this);
   }
 
-
-
+  // send form for validation the login
   enviaLogin(evento) {
     evento.preventDefault();
     axios.post('http://localhost:8080/api/users/login', { Email: this.state.Email, Password: this.state.Password })
-      .then(res => {
-        alert("Good Job!");
-        return res.json();
+      .then(response => {
+        if (response.data.auth == true) {
+          localStorage.setItem('userLog', response.data);
+          return response;
+        } else {
+          throw new Error('não foi possível fazer o login');
+        }
+      })
+      .then(token => {
+        localStorage.setItem('auth-token', token);      
+        browserHistory.push('/admin/dashboard');
+        window.location.reload(); 
       })
       .catch(error => {
-        console.log(error);
+        this.setState({ msg: error.message });
       });
   }
 
-
-
+  // select email for login
   setUserName(evento) {
     this.setState({ Email: evento.target.value });
   }
-
+  // select password for login
   setPassword(evento) {
     this.setState({ Password: evento.target.value });
   }
@@ -61,9 +72,7 @@ class Login extends React.Component {
   }
 
   componentWillUnmount() {
-    document.body.classList.toggle("login-page");
 
-    browserHistory.push('/');
   }
 
   render() {

@@ -71,28 +71,8 @@ const routes = [
 
 
 
-  {
-    collapse: true,
-    name: "Support",
-    rtlName: "صفحات",
-    icon: "tim-icons icon-settings",
-    state: "pagesCollapse",
-    views: [    
-      {
-        path: "/download",
-        name: "Download",
-        rtlName: "عالتسعير",
-        mini: "DW",
-        rtlMini: "ع",
-        component: Download,
-        layout: "/admin"
-      },   
-     
-    ]
-  },
 
-
-
+  
   {
     collapse: true,
     name: "Auth",

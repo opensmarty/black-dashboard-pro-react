@@ -3,7 +3,7 @@ import axios from "axios";
 import moment from "moment";
 import Moment from "react-moment";
 
-
+import Calendar from 'react-calendar';
 // reactstrap components
 import {
   BreadcrumbItem,
@@ -34,11 +34,46 @@ class Schedule extends React.Component {
   constructor(props, context) {
     super(props, context);
     this.state = {
+
+      DateStart: new Date(),
+
+
       //lista todos os schedules
       lista: [],
       teamSelected: []
+
     };
+
+    this.setDateStart = this.setDateStart.bind(this);
   }
+
+
+
+
+  setDateStart(evento) {
+
+console.log(moment(evento));
+
+
+    this.setState({ DateStart: evento });
+
+    var data = {
+      DateStart: this.state.DateStart,
+    };
+
+
+    axios.post('http://localhost:8080/api/schedule/selectByDate/', data)
+      .then(res => {
+        this.setState({ lista: res.data });
+      })
+      .catch(error => {
+        console.log(error);
+      });
+
+
+  }
+
+
 
   //Retorna schedule cadastrado
   listaSchedule() {
@@ -67,8 +102,7 @@ class Schedule extends React.Component {
 
   //Ao abrir a página executará funções
   componentDidMount() {
-    this.listaSchedule();
-    this.verificaAllSelect();
+
   }
 
 
@@ -93,24 +127,44 @@ class Schedule extends React.Component {
               </BreadcrumbItem>
               <BreadcrumbItem className="active">Plan</BreadcrumbItem>
             </ol>
+          </Row>
+          <Row>
+            <Col>
+              <Card >
+                <CardBody>
+                <h3>Search Date</h3>
+                  <FormGroup>
+                    <Calendar
+                      start
+                      onChange={this.setDateStart}
+                      value={this.state.DateStart}
+                    />
+                  </FormGroup>
+                </CardBody>
+                <CardHeader>
+                  <Col xs={12} md={12}>
 
-            <Col xs={12} md={12}>
-
-              {
-                this.state.lista.map(function (schedule) {
-                  return (
-                    <blockquote className="blockquote">        
-                      <h3><b>Date:</b> <Moment format="MM-DD-YYYY">{schedule.Date}</Moment></h3>
-                      <h4><b>Name:</b> {schedule.Name}</h4>
-                      <h4><b>Contact Name:</b> {schedule.ContactName}</h4>
-                      <h4><b>Address:</b> {schedule.Address} - {schedule.City} - {schedule.StateDesc}</h4>
-                      <footer className="blockquote-footer"><b>Job Description:</b> {schedule.JobDescription}</footer>
-                    </blockquote>
-                  );
-                })
-              }
+                    {
+                      this.state.lista.map(function (schedule) {
+                        return (
+                          <blockquote className="blockquote">
+                            <h2><b>Contact Name:</b> {schedule.Name}</h2>
+                            <h3><b>Date Start:</b> <Moment format="DD-MM-YYYY">{schedule.DateStart}</Moment></h3>
+                            <h3><b>Forecast</b><Moment format="DD-MM-YYYY">{schedule.DateEnd}</Moment></h3>
+                            <h4><b>Contact Name:</b> {schedule.ContactName}</h4>
+                            <h4><b>Address:</b> {schedule.Address} - {schedule.City} - {schedule.StateDesc}</h4>
+                            <footer className="blockquote-footer"><b>Job Description:</b> {schedule.JobDescription}</footer>
+                          </blockquote>
+                        );
+                      })
+                    }
+                  </Col>
+                </CardHeader>
+              </Card >
             </Col>
           </Row>
+
+
         </div>
       </>
     );
