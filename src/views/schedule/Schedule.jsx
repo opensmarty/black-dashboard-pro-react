@@ -52,7 +52,6 @@ class Schedule extends React.Component {
 
   setDateStart(evento) {
 
-console.log(moment(evento));
 
 
     this.setState({ DateStart: evento });
