@@ -38,6 +38,20 @@ class Login extends React.Component {
 
   // send form for validation the login
   enviaLogin(evento) {
+
+    let headers = new Headers();
+
+    headers.append('Content-Type', 'application/json');
+    headers.append('Accept', 'application/json');
+  
+    headers.append('Access-Control-Allow-Origin', 'http://localhost:3000');
+    headers.append('Access-Control-Allow-Credentials', 'true');
+  
+    headers.append('GET', 'POST', 'OPTIONS');
+
+
+
+
     evento.preventDefault();
     axios.post('https://app-back-obie.herokuapp.com/api/users/login', { Email: this.state.Email, Password: this.state.Password })
       .then(response => {
