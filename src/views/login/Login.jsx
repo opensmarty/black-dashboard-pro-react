@@ -39,22 +39,14 @@ class Login extends React.Component {
   // send form for validation the login
   enviaLogin(evento) {
 
-    let headers = new Headers();
-
-    headers.append('Content-Type', 'application/json');
-    headers.append('Accept', 'application/json');
-  
-    headers.append('Access-Control-Allow-Origin', 'http://localhost:3000');
-    headers.append('Access-Control-Allow-Credentials', 'true');
-  
-    headers.append('GET', 'POST', 'OPTIONS');
-
-
-
 
     evento.preventDefault();
+     
+
     axios.post('https://app-back-obie.herokuapp.com/api/users/login', { Email: this.state.Email, Password: this.state.Password })
-      .then(response => {
+    .then(response => {
+
+    
         if (response.data.auth == true) {
           localStorage.setItem('userLog', response.data);
           return response;
@@ -71,7 +63,7 @@ class Login extends React.Component {
         this.setState({ msg: error.message });
       });
   }
-
+  
   // select email for login
   setUserName(evento) {
     this.setState({ Email: evento.target.value });

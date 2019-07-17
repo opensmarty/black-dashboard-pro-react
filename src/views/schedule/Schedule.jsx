@@ -61,15 +61,14 @@ console.log(moment(evento));
       DateStart: this.state.DateStart,
     };
 
+    axios.post('https://app-back-obie.herokuapp.com/api/schedule/selectByDate/',    {withCredentials: true}, data)
 
-    axios.post('https://app-back-obie.herokuapp.com/api/schedule/selectByDate/', data)
       .then(res => {
         this.setState({ lista: res.data });
       })
       .catch(error => {
         console.log(error);
       });
-
 
   }
 

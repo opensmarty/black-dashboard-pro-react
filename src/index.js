@@ -16,6 +16,7 @@ import "react-notification-alert/dist/animate.css";
 
 const hist = createBrowserHistory();
 
+
 function verificaAutenticacao(nextState, replace) {
   console.log("storage");
   if (localStorage.getItem('auth-token') === null) {
