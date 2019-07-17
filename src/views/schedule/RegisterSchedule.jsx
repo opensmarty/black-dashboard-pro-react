@@ -12,7 +12,6 @@ import ReactTable from "react-table";
 //import { withSwalInstance } from 'sweetalert2-react';
 //import swal from 'sweetalert2';
 
-
 import {
   Card,
   CardBody,
@@ -34,10 +33,6 @@ import { format } from 'util';
 //const SweetAlert = withSwalInstance(swal);
 
 class RegisterSchedule extends React.Component {
-
-
-
-
 
   constructor(props, context) {
     super(props, context);
@@ -70,9 +65,6 @@ class RegisterSchedule extends React.Component {
 
       //controle modal
       modal: false,
-
-
-      // showAlert: false
 
     };
 
@@ -269,9 +261,6 @@ class RegisterSchedule extends React.Component {
     this.listaSchedule();
     this.listaTeam();
     this.verificaAllSelect();
-
-
-
   }
 
   //Abre o modal.
@@ -394,8 +383,6 @@ class RegisterSchedule extends React.Component {
                       onChange={this.setDateEnd}
                     />
                   </FormGroup>
-
-
                   <label>Address</label>
                   <FormGroup>
                     <Input type="text" id="Address" name="Address" value={this.state.Address} onChange={this.setAddress} />
@@ -453,7 +440,6 @@ class RegisterSchedule extends React.Component {
                       Cell: props => {
                         return (
                           <div>
-
                             {
                               this.state.teamSelected.find(o => o.Schedule_ScheduleId === props.original.ScheduleId) ?
                                 <Button className="btn-icon btn-simple" color="warning" size="sm" onClick={() => { this.removeTeam(props) }}>
@@ -464,17 +450,9 @@ class RegisterSchedule extends React.Component {
                                   <i className="fa fa-user"></i>
                                 </Button>
                             }
-
                             <Button className="btn-icon btn-simple" color="danger" size="sm" onClick={() => { this.removeSchedule(props) }}>
                               <i className="fa fa-times" />
                             </Button>{` `}
-
-
-
-
-
-
-
                           </div>
                         )
                       }
@@ -492,9 +470,9 @@ class RegisterSchedule extends React.Component {
                             }}>
                               &#x25cf;
                     </span> {
-                              this.state.teamSelected.find(o => o.Schedule_ScheduleId === props.original.ScheduleId) ? 'Pending'
+                              this.state.teamSelected.find(o => o.Schedule_ScheduleId === props.original.ScheduleId) ? 'All set'
                               // : schedule.Status === 2 ? `Pending Approval`
-                              : 'All set'
+                              : 'Pending'
                           }
                           </span>
                         )
@@ -504,8 +482,7 @@ class RegisterSchedule extends React.Component {
                       Header: "Date Start",
                       accessor: "DateStart",
                       id: "DateStart",
-                      accessor: "DateStart"
-                      
+                      accessor: "DateStart"                     
                     },
                     {
                       Header: "Prediction Finish",

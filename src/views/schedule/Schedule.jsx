@@ -62,7 +62,7 @@ console.log(moment(evento));
     };
 
 
-    axios.post('http://localhost:8080/api/schedule/selectByDate/', data)
+    axios.post('https://app-back-obie.herokuapp.com/api/schedule/selectByDate/', data)
       .then(res => {
         this.setState({ lista: res.data });
       })
@@ -77,7 +77,7 @@ console.log(moment(evento));
 
   //Retorna schedule cadastrado
   listaSchedule() {
-    axios.get('http://localhost:8080/api/schedule')
+    axios.get('https://app-back-obie.herokuapp.com/api/schedule')
       .then(response => {
         console.log(response.data);
         this.setState({ lista: response.data });
@@ -89,7 +89,7 @@ console.log(moment(evento));
 
   //Verifica todos os teams selecionados
   verificaAllSelect() {
-    axios.get('http://localhost:8080/api/schedule/getAllSelected/')
+    axios.get('https://app-back-obie.herokuapp.com/api/schedule/getAllSelected/')
       .then(res => {
         console.log(res.data)
         this.setState({ teamSelected: res.data });
@@ -148,12 +148,18 @@ console.log(moment(evento));
                       this.state.lista.map(function (schedule) {
                         return (
                           <blockquote className="blockquote">
-                            <h2><b>Contact Name:</b> {schedule.Name}</h2>
-                            <h3><b>Date Start:</b> <Moment format="DD-MM-YYYY">{schedule.DateStart}</Moment></h3>
-                            <h3><b>Forecast</b><Moment format="DD-MM-YYYY">{schedule.DateEnd}</Moment></h3>
+                            <h4><b>Contact Name:</b> {schedule.Name}</h4>
+                            <h4><b>Date Start:</b> <Moment format="DD-MM-YYYY">{schedule.DateStart}</Moment></h4>
+                            <h4><b>Forecast</b><Moment format="DD-MM-YYYY">{schedule.DateEnd}</Moment></h4>
                             <h4><b>Contact Name:</b> {schedule.ContactName}</h4>
                             <h4><b>Address:</b> {schedule.Address} - {schedule.City} - {schedule.StateDesc}</h4>
                             <footer className="blockquote-footer"><b>Job Description:</b> {schedule.JobDescription}</footer>
+
+
+
+                            <Button className="btn-icon btn-simple" color="danger" size="sm">
+                              <i className="fa fa-eye" />
+                            </Button>
                           </blockquote>
                         );
                       })
