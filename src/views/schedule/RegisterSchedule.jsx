@@ -1,22 +1,17 @@
 import React, { Component } from 'react';
 import moment from "moment";
-import Moment from "react-moment";
-
+import Select from "react-select";
 import { Formik, Field } from "formik";
 import ReactDatetime from "react-datetime";
 import axios from "axios";
 import ReactTable from "react-table";
-
-//import { useAlert } from "react-alert";
-
-//import { withSwalInstance } from 'sweetalert2-react';
-//import swal from 'sweetalert2';
-
+import Switch from 'react-bootstrap-switch';
 import {
   Card,
   CardBody,
   CardHeader,
   CardTitle,
+  CardSubtitle,
   Row,
   Col,
   Form,
@@ -24,13 +19,11 @@ import {
   Label,
   Input,
   Modal, ModalHeader, ModalBody, ModalFooter,
-  CardFooter,
   FormGroup,
   Button
 } from "reactstrap";
 import { format } from 'util';
-
-//const SweetAlert = withSwalInstance(swal);
+import { width } from '@material-ui/system';
 
 class RegisterSchedule extends React.Component {
 
@@ -58,7 +51,6 @@ class RegisterSchedule extends React.Component {
       PhoneNumber: '',
       Information: '',
       Status: '',
-      Workflow: '',
 
       //armazena id do schedule selecionado na table
       ScheduleId: '',
@@ -67,7 +59,7 @@ class RegisterSchedule extends React.Component {
       modal: false,
 
     };
-
+    this.atualizaForm = this.atualizaForm.bind(this);
     this.toggle = this.toggle.bind(this);
     this.enviaForm = this.enviaForm.bind(this);
     this.setDateStart = this.setDateStart.bind(this);
@@ -84,6 +76,87 @@ class RegisterSchedule extends React.Component {
     this.removeTeam = this.removeTeam.bind(this);
 
   }
+
+  //Seleciona o schedule para alteracao
+  toggleModalLarge(props) {
+    this.setState({ 
+      DateStart: moment(props.original.DateStart),
+      DateEnd: moment(props.original.DateEnd),
+      Address: props.original.Address,
+      City: props.original.City,
+      StateDesc: props.original.StateDesc,
+      ZipCode: props.original.ZipCode,
+      ContactName: props.original.ContactName,
+      PhoneNumber: props.original.PhoneNumber,
+      Information: props.original.Information,
+      JobDescription: props.original.JobDescription,
+      ScheduleId: props.original.ScheduleId
+    });
+  }
+
+  //Registra dados do schedule
+  enviaForm(evento) {
+    var data = {
+      DateStart: this.state.DateStart,
+      DateEnd: this.state.DateEnd,
+      Address: this.state.Address,
+      City: this.state.City,
+      StateDesc: this.state.StateDesc,
+      ZipCode: this.state.ZipCode,
+      ContactName: this.state.ContactName,
+      PhoneNumber: this.state.PhoneNumber,
+      Information: this.state.Information,
+      JobDescription: this.state.JobDescription,
+    };
+
+    evento.preventDefault();
+    
+    axios.post('https://app-back-obie.herokuapp.com/api/schedule/create', data)
+    //axios.post('http://localhost:8080/api/schedule/create', data)
+      .then(res => {
+
+        this.listaSchedule();
+
+        alert("Good Job!");
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }
+
+
+    //Registra dados do schedule
+    atualizaForm(evento) {
+    var data = {
+        DateStart: moment(this.   state.DateStart),
+        DateEnd: moment(this.state.DateEnd),
+        Address: this.state.Address,
+        City: this.state.City,
+        StateDesc: this.state.StateDesc,
+        ZipCode: this.state.ZipCode,
+       ContactName: this.state.ContactName,
+        PhoneNumber: this.state.PhoneNumber,
+        Information: this.state.Information,
+        JobDescription: this.state.JobDescription,
+        ScheduleId: this.state.ScheduleId
+      };
+
+      console.log(data);
+
+      evento.preventDefault();
+      
+      axios.post('https://app-back-obie.herokuapp.com/api/schedule/update', data)
+      //axios.post('http://localhost:8080/api/schedule/update', data)
+       .then(res => {
+  
+         this.listaSchedule();
+  
+         alert("Good Job!");
+        })
+        .catch(error => {
+         console.log(error);
+        });
+    }
 
   setDateStart(evento) {
     this.setState({ DateStart: moment(evento) });
@@ -127,7 +200,9 @@ class RegisterSchedule extends React.Component {
 
   //Retorna schedule cadastrado
   listaSchedule() {
-    axios.get('http://localhost:8080/api/schedule')
+    
+    axios.get('https://app-back-obie.herokuapp.com/api/schedule')
+   // axios.get('http://localhost:8080/api/schedule')
       .then(response => {
         this.setState({ lista: response.data })
       })
@@ -138,7 +213,8 @@ class RegisterSchedule extends React.Component {
 
   //Retorna team cadastrado
   listaTeam() {
-    axios.get('http://localhost:8080/api/schedule/team')
+    axios.get('https://app-back-obie.herokuapp.com/api/schedule/team')
+    //axios.get('http://localhost:8080/api/schedule/team')
       .then(response => {
         this.setState({ team: response.data })
       })
@@ -147,40 +223,14 @@ class RegisterSchedule extends React.Component {
       });
   };
 
-  //Registra dados do schedule
-  enviaForm(evento) {
-    var data = {
-      DateStart: this.state.DateStart,
-      DateEnd: this.state.DateEnd,
-      Address: this.state.Address,
-      City: this.state.Address,
-      StateDesc: this.state.StateDesc,
-      ZipCode: this.state.ZipCode,
-      ContactName: this.state.ContactName,
-      PhoneNumber: this.state.PhoneNumber,
-      Information: this.state.Information,
-      JobDescription: this.state.JobDescription
-    };
-    evento.preventDefault();
-    axios.post('http://localhost:8080/api/schedule/create', data)
-      .then(res => {
-
-        this.listaSchedule();
-
-        alert("Good Job!");
-      })
-      .catch(error => {
-        console.log(error);
-      });
-  }
-
   //Registra team que vai executar o schedule
   registerTeam(team) {
     var data = {
       ScheduleId: this.state.ScheduleId,
       team: team.values
     };
-    axios.post('http://localhost:8080/api/schedule/registerteam/', data)
+    axios.post('https://app-back-obie.herokuapp.com/api/schedule/registerteam/', data)
+   // axios.post('http://localhost:8080/api/schedule/registerteam/', data)
       .then(res => {
         this.listaSchedule();
         this.verificaAllSelect();
@@ -194,7 +244,8 @@ class RegisterSchedule extends React.Component {
 
   //****/Verifica se existe alguem no schedule por id do schedule
   verificaSelectedById(id) {
-    axios.get('http://localhost:8080/api/schedule/getbyid/' + id)
+    axios.get('https://app-back-obie.herokuapp.com/api/schedule/getbyid/' + id)
+ // axios.get('http://localhost:8080/api/schedule/getbyid/' + id)
       .then(res => {
         console.log(res.data)
         this.setState({ teamSelected: res.data });
@@ -206,7 +257,8 @@ class RegisterSchedule extends React.Component {
 
   //Verifica se existe todos no schedule
   verificaAllSelect() {
-    axios.get('http://localhost:8080/api/schedule/getAllSelected/')
+    axios.get('https://app-back-obie.herokuapp.com/api/schedule/getAllSelected/')
+   // axios.get('http://localhost:8080/api/schedule/getAllSelected/')
       .then(res => {
         console.log(res.data)
         this.setState({ teamSelected: res.data });
@@ -229,7 +281,10 @@ class RegisterSchedule extends React.Component {
     var data = {
       ScheduleId: id.original.ScheduleId,
     };
-    axios.post('http://localhost:8080/api/schedule/delete/', data)
+
+    
+    axios.post('https://app-back-obie.herokuapp.com/api/schedule/delete/', data)
+    //axios.post('http://localhost:8080/api/schedule/delete/', data)
       .then(res => {
         this.listaSchedule();
         this.verificaAllSelect();
@@ -270,6 +325,20 @@ class RegisterSchedule extends React.Component {
     }));
   }
 
+  handleSwitchEquip(elem, state) {
+    // console.log('handleSwitch. elem:', elem);
+    //console.log('name:', elem.props.name);
+    //console.log('new state:', state);
+    this.setState({ Equip: state });
+  }
+
+  handleSwitchParts(elem, state) {
+    //console.log('handleSwitch. elem:', elem);
+    //console.log('name:', elem.props.name);
+    //console.log('new state:', state);
+    this.setState({ Parts: state });
+  }
+
   render(props) {
 
     let lgClose = () => this.setState({ lgShow: false });
@@ -301,17 +370,18 @@ class RegisterSchedule extends React.Component {
         </Field>
       );
     }
+
     const closeBtn = <button className="close" onClick={this.toggle}>&times;</button>;
 
     return (
       <div className="content">
         <Formik initialValues={{ roles: [] }} onSubmit={values => this.registerTeam({ values })} >
           {formik => (
-            <Modal isOpen={this.state.modal} toggle={this.toggle} className={this.props.className}>
+            <Modal isOpen={this.state.modal} toggle={this.toggle} modalClassName="modal-black">
               <ModalHeader toggle={this.toggle} close={closeBtn}>Select Team - {this.state.ScheduleId}</ModalHeader>
               <ModalBody>
                 <div className="content">
-                  <Table responsive dark>
+                  <Table responsive>
                     <thead>
                       <tr>
                         <th>#</th>
@@ -369,8 +439,7 @@ class RegisterSchedule extends React.Component {
                       onChange={this.setDateStart}
                     />
                   </FormGroup>
-
-                  <label>Prediction Finish</label>
+                  <label>Complete Date</label>
                   <FormGroup>
                     <ReactDatetime
                       inputProps={{
@@ -415,10 +484,25 @@ class RegisterSchedule extends React.Component {
                   <FormGroup>
                     <textarea className="form-control" type="text" value={this.state.Information} onChange={this.setInformation} />
                   </FormGroup>
-                  <Button className="btn-fill" color="info" type="submit">
-                    Submit
-                  </Button>
+                  <FormGroup>
+              
+
+          
+                  </FormGroup>
                 </Form>
+
+
+
+                <Button className="btn-fill" color="info" type="submit" onClick={this.enviaForm}>
+                      Create New
+                  </Button>
+
+                <Button className="btn-fill" color="success" onClick={this.atualizaForm}>
+                      Save Editions
+                  </Button>
+
+
+
               </CardBody>
             </Card>
           </Col>
@@ -432,7 +516,6 @@ class RegisterSchedule extends React.Component {
                   data={
                     this.state.lista}
                   onRowClick={data => {
-                    console.log(data);
                   }}
                   columns={[
                     {
@@ -453,6 +536,9 @@ class RegisterSchedule extends React.Component {
                             <Button className="btn-icon btn-simple" color="danger" size="sm" onClick={() => { this.removeSchedule(props) }}>
                               <i className="fa fa-times" />
                             </Button>{` `}
+                            <Button className="btn-icon btn-simple" color="default" size="sm" onClick={() => { this.toggleModalLarge(props) }}>
+                              <i className="fa fa-edit" />
+                            </Button>
                           </div>
                         )
                       }
@@ -463,17 +549,17 @@ class RegisterSchedule extends React.Component {
                         return (
                           <span>
                             <span style={{
-                              color: this.state.teamSelected.find(o => o.Schedule_ScheduleId === props.original.ScheduleId) ? '#FF0000'
+                              color: this.state.teamSelected.find(o => o.Schedule_ScheduleId === props.original.ScheduleId) ? '#57d500'
                                 // : schedule.Status === 2 ? '#ffbf00'
-                                : '#57d500',
+                                : '#FF0000',
                               transition: 'all .3s ease'
                             }}>
                               &#x25cf;
-                    </span> {
+                          </span> {
                               this.state.teamSelected.find(o => o.Schedule_ScheduleId === props.original.ScheduleId) ? 'All set'
-                              // : schedule.Status === 2 ? `Pending Approval`
-                              : 'Pending'
-                          }
+                                // : schedule.Status === 2 ? `Pending Approval`
+                                : 'Pending'
+                            }
                           </span>
                         )
                       }
@@ -482,7 +568,7 @@ class RegisterSchedule extends React.Component {
                       Header: "Date Start",
                       accessor: "DateStart",
                       id: "DateStart",
-                      accessor: "DateStart"                     
+                      accessor: "DateStart"
                     },
                     {
                       Header: "Prediction Finish",

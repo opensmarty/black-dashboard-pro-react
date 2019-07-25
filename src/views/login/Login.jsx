@@ -3,7 +3,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { browserHistory } from 'react-router';
 import axios from "axios";
 import { render } from 'react-dom'
-import $ from 'jquery';
+
 
 // reactstrap components
 import {
@@ -39,39 +39,32 @@ class Login extends React.Component {
   // send form for validation the login
   enviaLogin(evento) {
 
-console.log("debu");
-
-
     evento.preventDefault();
      
+    
 
+    axios.post('https://app-back-obie.herokuapp.com/api/users/login', { Email: this.state.Email, Password: this.state.Password })
+    axios.post('http://localhost:8080/api/users/login', { Email: this.state.Email, Password: this.state.Password })
+    .then(response => {
 
-
-    evento.preventDefault();
-    $.ajax({
-        url: 'https://app-back-obie.herokuapp.com/api/users/login',
-        contentType: 'application/json',
-        dataType: 'json',
-        type: 'post',
-        data: JSON.stringify({ Email: this.state.Email, Password: this.state.Password }),
-        success: function (novaresposta) {
-          localStorage.setItem('userLog', novaresposta.data);
-          return novaresposta;
-        }.bind(this),
-        error: function (title) {
+    
+        if (response.data.auth == true) {
+          localStorage.setItem('userLog', response.data);
+          return response;
+        } else {
           throw new Error('não foi possível fazer o login');
         }
-    });
-
-
-
-
-
-
-
-
+      })
+      .then(token => {
+        localStorage.setItem('auth-token', token);
+        browserHistory.push('/admin/dashboard');
+        window.location.reload();
+      })
+      .catch(error => {
+        this.setState({ msg: error.message });
+      });
   }
-  
+
   // select email for login
   setUserName(evento) {
     this.setState({ Email: evento.target.value });
@@ -142,7 +135,6 @@ console.log("debu");
     );
   }
 
-
   handleChange(e) {
     this.setState(
       {
@@ -150,10 +142,6 @@ console.log("debu");
       }
     )
   }
-
-
-
-
 
 }
 

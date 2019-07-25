@@ -12,22 +12,13 @@ import {
   Card,
   CardHeader,
   CardBody,
-  CardText,
-  CardTitle,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-  UncontrolledDropdown,
+  UncontrolledCollapse,
   Label,
   FormGroup,
   Input,
-  Progress,
-  Table,
   Row,
   Col,
-  UncontrolledTooltip
 } from "reactstrap";
-
 
 class Schedule extends React.Component {
 
@@ -37,74 +28,50 @@ class Schedule extends React.Component {
 
       DateStart: new Date(),
 
-
       //lista todos os schedules
       lista: [],
-      teamSelected: []
+      teamSelected: [],
 
+      //controle modal
+      openedCollapses: ["collapseOne"]
     };
 
     this.setDateStart = this.setDateStart.bind(this);
   }
 
-
-
-
   setDateStart(evento) {
-
-
-
     this.setState({ DateStart: evento });
-
     var data = {
       DateStart: this.state.DateStart,
     };
 
-    axios.post('https://app-back-obie.herokuapp.com/api/schedule/selectByDate/',    {withCredentials: true}, data)
-
+    
+    //axios.post('http://localhost:8080/api/schedule/selectByDate/', data)
+    axios.post('https://app-back-obie.herokuapp.com/api/schedule/selectByDate/', data)
       .then(res => {
         this.setState({ lista: res.data });
       })
       .catch(error => {
         console.log(error);
       });
-
   }
-
-
-
-  //Retorna schedule cadastrado
-  listaSchedule() {
-    axios.get('https://app-back-obie.herokuapp.com/api/schedule')
-      .then(response => {
-        console.log(response.data);
-        this.setState({ lista: response.data });
-      })
-      .catch(error => {
-        console.log(error);
-      });
-  };
-
-  //Verifica todos os teams selecionados
-  verificaAllSelect() {
-    axios.get('https://app-back-obie.herokuapp.com/api/schedule/getAllSelected/')
-      .then(res => {
-        console.log(res.data)
-        this.setState({ teamSelected: res.data });
-
-      })
-      .catch(error => {
-        console.log(error);
-      });
-  };
 
   //Ao abrir a página executará funções
   componentDidMount() {
-
   }
 
-
-
+  collapsesToggle = collapse => {
+    let openedCollapses = this.state.openedCollapses;
+    if (openedCollapses.includes(collapse)) {
+      this.setState({
+        openedCollapses: []
+      });
+    } else {
+      this.setState({
+        openedCollapses: [collapse]
+      });
+    }
+  };
 
   render() {
     return (
@@ -130,7 +97,7 @@ class Schedule extends React.Component {
             <Col>
               <Card >
                 <CardBody>
-                <h3>Search Date</h3>
+                  <h3>Search Date</h3>
                   <FormGroup>
                     <Calendar
                       start
@@ -141,7 +108,6 @@ class Schedule extends React.Component {
                 </CardBody>
                 <CardHeader>
                   <Col xs={12} md={12}>
-
                     {
                       this.state.lista.map(function (schedule) {
                         return (
@@ -151,13 +117,32 @@ class Schedule extends React.Component {
                             <h4><b>Forecast</b><Moment format="DD-MM-YYYY">{schedule.DateEnd}</Moment></h4>
                             <h4><b>Contact Name:</b> {schedule.ContactName}</h4>
                             <h4><b>Address:</b> {schedule.Address} - {schedule.City} - {schedule.StateDesc}</h4>
-                            <footer className="blockquote-footer"><b>Job Description:</b> {schedule.JobDescription}</footer>
+                            <Button className="btn-icon btn-simple" color="success" size="sm" href="#collapseExample" id="linkToggler">
+                              <i className="fa fa-info"></i>
+                            </Button>{' '}
+                            <Button className="btn-icon btn-simple" color="success" size="sm" href="#collapseExample" id="linkTogglerInformations">
+                              <i className="fa fa-comments"></i>
+                            </Button>{' '}
+                            {schedule.Ident === 2 &&
+                              <Button className="btn-icon btn-simple" color="success" size="sm" href="#collapseExample" id="linkTogglerInformations">
+                                <i className="fa fa-barcode"></i>
+                              </Button>
+                            }
+                            <UncontrolledCollapse toggler="#linkToggler,#buttonToggler">
+                              <Card>
+                                <CardBody>
+                                  <h4><b>Job Description:</b> {schedule.JobDescription} </h4>
+                                </CardBody>
+                              </Card>
+                            </UncontrolledCollapse>
 
-
-
-                            <Button className="btn-icon btn-simple" color="danger" size="sm">
-                              <i className="fa fa-eye" />
-                            </Button>
+                            <UncontrolledCollapse toggler="#linkTogglerInformations,#buttonToggler">
+                              <Card>
+                                <CardBody>
+                                  <h4><b>Job Informations:</b> {schedule.Information} </h4>
+                                </CardBody>
+                              </Card>
+                            </UncontrolledCollapse>
                           </blockquote>
                         );
                       })
@@ -167,8 +152,6 @@ class Schedule extends React.Component {
               </Card >
             </Col>
           </Row>
-
-
         </div>
       </>
     );

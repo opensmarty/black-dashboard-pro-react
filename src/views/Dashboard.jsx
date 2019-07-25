@@ -6,6 +6,11 @@ import { Line, Bar } from "react-chartjs-2";
 // react plugin for creating vector maps
 import { VectorMap } from "react-jvectormap";
 
+
+import { GoogleApiWrapper, InfoWindow, Map, Marker } from 'google-maps-react';
+
+
+
 // reactstrap components
 import {
   Button,
@@ -37,6 +42,8 @@ import {
   chartExample4
 } from "variables/charts.jsx";
 
+//const AnyReactComponent = ({ text }) => <div>{text}</div>;
+
 var mapData = {
   AU: 760,
   BR: 550,
@@ -55,15 +62,60 @@ class Dashboard extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      bigChartData: "data1"
-    };
+      bigChartData: "data1",
+      showingInfoWindow: false,
+      activeMarker: {},
+      selectedPlace: {}
+    }
+
+
+    // binding this to event-handler functions
+    this.onMarkerClick = this.onMarkerClick.bind(this);
+    this.onMapClick = this.onMapClick.bind(this);
+
+
   }
+
+
+  onMarkerClick = (props, marker, e) => {
+    this.setState({
+      selectedPlace: props,
+      activeMarker: marker,
+      showingInfoWindow: true
+    });
+  }
+  onMapClick = (props) => {
+    if (this.state.showingInfoWindow) {
+      this.setState({
+        showingInfoWindow: false,
+        activeMarker: null
+      });
+    }
+  }
+Í
+
+
+
+
+
   setBgChartData = name => {
     this.setState({
       bigChartData: name
     });
   };
+
+
+
   render() {
+
+    const style = {
+      width: '50vw',
+      height: '75vh',
+      'marginLeft': 'auto',
+      'marginRight': 'auto'
+    }
+
+
     return (
       <>
         <div className="content">
@@ -71,6 +123,7 @@ class Dashboard extends React.Component {
             <Col xs="12">
               <Card className="card-chart">
                 <CardHeader>
+
                   <Row>
                     <Col className="text-left" sm="6">
                       <h5 className="card-category">Total Shipments</h5>
@@ -1086,6 +1139,52 @@ class Dashboard extends React.Component {
                       />
                     </Col>
                   </Row>
+
+                  <Row>
+
+
+
+
+                  <Map
+        item
+        xs = { 12 }
+                        
+        google = { this.props.google }
+        onClick = { this.onMapClick }
+        zoom = { 14 }
+        initialCenter = {{ lat: 39.648209, lng: -75.711185 }}
+      >
+        <Marker
+          onClick = { this.onMarkerClick }
+          title = { 'Changing Colors Garage' }
+          position = {{ lat: 39.648209, lng: -75.711185 }}
+          name = { 'Changing Colors Garage' }
+        />
+        <InfoWindow
+          marker = { this.state.activeMarker }
+          visible = { this.state.showingInfoWindow }
+        >
+          <a>
+            <p
+              variant = 'headline'
+              component = 'h4'
+            >
+              Changing Colors Garage
+            </p>
+            <p
+              component = 'p'
+            >
+              98G Albe Dr Newark, DE 19702 <br />
+              302-293-8627
+            </p>
+          </a>
+        </InfoWindow>
+      </Map>
+
+
+
+
+                  </Row>
                 </CardBody>
               </Card>
             </Col>
@@ -1096,4 +1195,6 @@ class Dashboard extends React.Component {
   }
 }
 
-export default Dashboard;
+export default GoogleApiWrapper({
+  apiKey: ("AIzaSyDUzl8evAposmqeMkDLeWm_Q84UktbpAxk")
+})(Dashboard);
