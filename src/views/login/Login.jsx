@@ -44,7 +44,7 @@ class Login extends React.Component {
     
 
     axios.post('https://app-back-obie.herokuapp.com/api/users/login', { Email: this.state.Email, Password: this.state.Password })
-    axios.post('http://localhost:8080/api/users/login', { Email: this.state.Email, Password: this.state.Password })
+    //axios.post('http://localhost:8080/api/users/login', { Email: this.state.Email, Password: this.state.Password })
     .then(response => {
 
     
