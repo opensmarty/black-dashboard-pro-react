@@ -5,7 +5,9 @@ import { Formik, Field } from "formik";
 import ReactDatetime from "react-datetime";
 import axios from "axios";
 import ReactTable from "react-table";
+import MultiSelect from "@khanacademy/react-multi-select";
 import Switch from 'react-bootstrap-switch';
+
 import {
   Card,
   CardBody,
@@ -40,6 +42,7 @@ class RegisterSchedule extends React.Component {
       teamSelected: [],
 
       //variaveis do form
+      DateSold: moment(),
       DateStart: moment(),
       DateEnd: moment(),
       JobDescription: '',
@@ -58,10 +61,29 @@ class RegisterSchedule extends React.Component {
       //controle modal
       modal: false,
 
+
+
+
+
+
+
+
+
+      locations: [],
+      locationsSelected: [],
+
+
+      followUp: [],
+      followUpSelected: []
+
     };
     this.atualizaForm = this.atualizaForm.bind(this);
     this.toggle = this.toggle.bind(this);
     this.enviaForm = this.enviaForm.bind(this);
+
+
+
+    this.setDateSold = this.setDateSold.bind(this);
     this.setDateStart = this.setDateStart.bind(this);
     this.setDateEnd = this.setDateEnd.bind(this);
     this.setJobDescription = this.setJobDescription.bind(this);
@@ -79,7 +101,8 @@ class RegisterSchedule extends React.Component {
 
   //Seleciona o schedule para alteracao
   toggleModalLarge(props) {
-    this.setState({ 
+    this.setState({
+      DateSold: moment(props.original.DateSold),
       DateStart: moment(props.original.DateStart),
       DateEnd: moment(props.original.DateEnd),
       Address: props.original.Address,
@@ -110,9 +133,9 @@ class RegisterSchedule extends React.Component {
     };
 
     evento.preventDefault();
-    
-    axios.post('https://app-back-obie.herokuapp.com/api/schedule/create', data)
-    //axios.post('http://localhost:8080/api/schedule/create', data)
+
+    //axios.post('https://app-back-obie.herokuapp.com/api/schedule/create', data)
+    axios.post('http://localhost:5000/api/schedule/create', data)
       .then(res => {
 
         this.listaSchedule();
@@ -125,38 +148,44 @@ class RegisterSchedule extends React.Component {
   }
 
 
-    //Registra dados do schedule
-    atualizaForm(evento) {
+  //Registra dados do schedule
+  atualizaForm(evento) {
     var data = {
-        DateStart: moment(this.   state.DateStart),
-        DateEnd: moment(this.state.DateEnd),
-        Address: this.state.Address,
-        City: this.state.City,
-        StateDesc: this.state.StateDesc,
-        ZipCode: this.state.ZipCode,
-       ContactName: this.state.ContactName,
-        PhoneNumber: this.state.PhoneNumber,
-        Information: this.state.Information,
-        JobDescription: this.state.JobDescription,
-        ScheduleId: this.state.ScheduleId
-      };
+      DateSold: moment(this.state.DateSold),
+      DateStart: moment(this.state.DateStart),
+      DateEnd: moment(this.state.DateEnd),
+      Address: this.state.Address,
+      City: this.state.City,
+      StateDesc: this.state.StateDesc,
+      ZipCode: this.state.ZipCode,
+      ContactName: this.state.ContactName,
+      PhoneNumber: this.state.PhoneNumber,
+      Information: this.state.Information,
+      JobDescription: this.state.JobDescription,
+      ScheduleId: this.state.ScheduleId
+    };
 
-      console.log(data);
+    console.log(data);
 
-      evento.preventDefault();
-      
-      axios.post('https://app-back-obie.herokuapp.com/api/schedule/update', data)
-      //axios.post('http://localhost:8080/api/schedule/update', data)
-       .then(res => {
-  
-         this.listaSchedule();
-  
-         alert("Good Job!");
-        })
-        .catch(error => {
-         console.log(error);
-        });
-    }
+    evento.preventDefault();
+
+    //axios.post('https://app-back-obie.herokuapp.com/api/schedule/update', data)
+    axios.post('http://localhost:5000/api/schedule/update', data)
+      .then(res => {
+
+        this.listaSchedule();
+
+        alert("Good Job!");
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }
+
+
+  setDateSold(evento) {
+    this.setState({ DateSold: moment(evento) });
+  }
 
   setDateStart(evento) {
     this.setState({ DateStart: moment(evento) });
@@ -200,9 +229,9 @@ class RegisterSchedule extends React.Component {
 
   //Retorna schedule cadastrado
   listaSchedule() {
-    
-    axios.get('https://app-back-obie.herokuapp.com/api/schedule')
-   // axios.get('http://localhost:8080/api/schedule')
+
+    //axios.get('https://app-back-obie.herokuapp.com/api/schedule')
+    axios.get('http://localhost:5000/api/schedule')
       .then(response => {
         this.setState({ lista: response.data })
       })
@@ -213,8 +242,8 @@ class RegisterSchedule extends React.Component {
 
   //Retorna team cadastrado
   listaTeam() {
-    axios.get('https://app-back-obie.herokuapp.com/api/schedule/team')
-    //axios.get('http://localhost:8080/api/schedule/team')
+    //axios.get('https://app-back-obie.herokuapp.com/api/schedule/team')
+    axios.get('http://localhost:5000/api/schedule/team')
       .then(response => {
         this.setState({ team: response.data })
       })
@@ -229,8 +258,8 @@ class RegisterSchedule extends React.Component {
       ScheduleId: this.state.ScheduleId,
       team: team.values
     };
-    axios.post('https://app-back-obie.herokuapp.com/api/schedule/registerteam/', data)
-   // axios.post('http://localhost:8080/api/schedule/registerteam/', data)
+    //axios.post('https://app-back-obie.herokuapp.com/api/schedule/registerteam/', data)
+    axios.post('http://localhost:5000/api/schedule/registerteam/', data)
       .then(res => {
         this.listaSchedule();
         this.verificaAllSelect();
@@ -244,8 +273,8 @@ class RegisterSchedule extends React.Component {
 
   //****/Verifica se existe alguem no schedule por id do schedule
   verificaSelectedById(id) {
-    axios.get('https://app-back-obie.herokuapp.com/api/schedule/getbyid/' + id)
- // axios.get('http://localhost:8080/api/schedule/getbyid/' + id)
+    // axios.get('https://app-back-obie.herokuapp.com/api/schedule/getbyid/' + id)
+    axios.get('http://localhost:5000/api/schedule/getbyid/' + id)
       .then(res => {
         console.log(res.data)
         this.setState({ teamSelected: res.data });
@@ -257,8 +286,8 @@ class RegisterSchedule extends React.Component {
 
   //Verifica se existe todos no schedule
   verificaAllSelect() {
-    axios.get('https://app-back-obie.herokuapp.com/api/schedule/getAllSelected/')
-   // axios.get('http://localhost:8080/api/schedule/getAllSelected/')
+    // axios.get('https://app-back-obie.herokuapp.com/api/schedule/getAllSelected/')
+    axios.get('http://localhost:5000/api/schedule/getAllSelected/')
       .then(res => {
         console.log(res.data)
         this.setState({ teamSelected: res.data });
@@ -282,9 +311,9 @@ class RegisterSchedule extends React.Component {
       ScheduleId: id.original.ScheduleId,
     };
 
-    
-    axios.post('https://app-back-obie.herokuapp.com/api/schedule/delete/', data)
-    //axios.post('http://localhost:8080/api/schedule/delete/', data)
+
+    //axios.post('https://app-back-obie.herokuapp.com/api/schedule/delete/', data)
+    axios.post('http://localhost:5000/api/schedule/delete/', data)
       .then(res => {
         this.listaSchedule();
         this.verificaAllSelect();
@@ -300,7 +329,7 @@ class RegisterSchedule extends React.Component {
     var data = {
       ScheduleId: id.original.ScheduleId,
     };
-    axios.post('http://localhost:8080/api/schedule/team/delete/', data)
+    axios.post('http://localhost:5000/api/schedule/team/delete/', data)
       .then(res => {
         this.listaSchedule();
         this.verificaAllSelect();
@@ -311,8 +340,47 @@ class RegisterSchedule extends React.Component {
       });
   }
 
+
+
+
+
+  //Retorna os locais que podem ser instalados os sistemas
+  getAllLocations() {
+    // axios.get('https://app-back-obie.herokuapp.com/api/schedule/getAllSelected/')
+    axios.get('http://localhost:5000/api/schedule/location/')
+      .then(res => {
+        console.log(res.data)
+        this.setState({ locations: res.data });
+
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
+
+
+
+  //Retorna os status possiveis para o followup
+  getAllFollowUp() {
+    // axios.get('https://app-back-obie.herokuapp.com/api/schedule/getAllSelected/')
+    axios.get('http://localhost:5000/api/schedule/followup/')
+      .then(res => {
+        console.log(res.data)
+        this.setState({ followUp: res.data });
+
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
+
+
+
+
   //Ao abrir a página executará funções
   componentDidMount() {
+    this.getAllLocations();
+    this.getAllFollowUp();
     this.listaSchedule();
     this.listaTeam();
     this.verificaAllSelect();
@@ -373,6 +441,16 @@ class RegisterSchedule extends React.Component {
 
     const closeBtn = <button className="close" onClick={this.toggle}>&times;</button>;
 
+    //remodela o array de locais
+    let optionsLocations = this.state.locations.map(function (location) {
+      return { value: location.LocationId, label: location.Desc };
+    })
+
+    //remodela o array de followup
+    let optionsFollow = this.state.followUp.map(function (follow) {
+      return { value: follow.FollowUpId, label: follow.Desc };
+    })
+
     return (
       <div className="content">
         <Formik initialValues={{ roles: [] }} onSubmit={values => this.registerTeam({ values })} >
@@ -426,6 +504,66 @@ class RegisterSchedule extends React.Component {
               </CardHeader>
               <CardBody>
                 <Form action="#" onSubmit={this.enviaForm}>
+
+                  <label>Date Sold</label>
+                  <FormGroup>
+                    <ReactDatetime
+                      inputProps={{
+                        className: "form-control",
+                        placeholder: "Date scheduling",
+                      }}
+                      id="DateSold"
+                      name="DateSold"
+                      value={this.state.DateSold}
+                      onChange={this.DateSold}
+                    />
+                  </FormGroup>
+
+
+
+
+
+
+
+
+                  <label>Address</label>
+                  <FormGroup>
+                    <Input type="text" id="Address" name="Address" value={this.state.Address} onChange={this.setAddress} />
+                  </FormGroup>
+                  <label>City</label>
+                  <FormGroup>
+                    <Input type="text" id="City" name="City" value={this.state.City} onChange={this.setCity} />
+                  </FormGroup>
+                  <label>State</label>
+                  <FormGroup>
+                    <Input type="text" id="StateDesc" name="StateDesc" value={this.state.StateDesc} onChange={this.setStateDesc} />
+                  </FormGroup>
+                  <label>ZipCode</label>
+                  <FormGroup>
+                    <Input type="text" value={this.state.ZipCode} onChange={this.setZipCode} />
+                  </FormGroup>
+
+                  <label>Contact Name</label>
+                  <FormGroup>
+                    <Input type="text" value={this.state.ContactName} onChange={this.setContactName} />
+                  </FormGroup>
+                  <label>Phone Number</label>
+                  <FormGroup>
+                    <Input type="text" value={this.state.PhoneNumber} onChange={this.setPhoneNumber} />
+                  </FormGroup>
+                  <label>Information</label>
+                  <FormGroup>
+                    <textarea className="form-control" type="text" value={this.state.Information} onChange={this.setInformation} />
+                  </FormGroup>
+
+
+
+
+
+
+
+
+
                   <label>Date Start</label>
                   <FormGroup>
                     <ReactDatetime
@@ -452,53 +590,119 @@ class RegisterSchedule extends React.Component {
                       onChange={this.setDateEnd}
                     />
                   </FormGroup>
-                  <label>Address</label>
+
+
+
+
+
+                  <label>Place</label>
                   <FormGroup>
-                    <Input type="text" id="Address" name="Address" value={this.state.Address} onChange={this.setAddress} />
+                    <MultiSelect
+                      options={optionsLocations}
+                      selected={this.state.locationsSelected}
+                      onSelectedChanged={locationsSelected => this.setState({ locationsSelected })}
+                    />
                   </FormGroup>
-                  <label>City</label>
+
+
+                  <label>Walk Thru</label>
                   <FormGroup>
-                    <Input type="text" id="City" name="City" value={this.state.City} onChange={this.setCity} />
+                    <Switch
+                      defaultValue={false}
+                      offColor="primary"
+                      offText="No"
+                      onColor="primary"
+                      onText="Yes"
+                    />{" "}
                   </FormGroup>
-                  <label>State</label>
-                  <FormGroup>
-                    <Input type="text" id="StateDesc" name="StateDesc" value={this.state.StateDesc} onChange={this.setStateDesc} />
-                  </FormGroup>
-                  <label>ZipCode</label>
-                  <FormGroup>
-                    <Input type="text" value={this.state.ZipCode} onChange={this.setZipCode} />
-                  </FormGroup>
+
+
+
+
                   <label>JobDescription</label>
                   <FormGroup>
                     <textarea className="form-control" type="text" value={this.state.JobDescription} onChange={this.setJobDescription} />
                   </FormGroup>
-                  <label>Contact Name</label>
-                  <FormGroup>
-                    <Input type="text" value={this.state.ContactName} onChange={this.setContactName} />
-                  </FormGroup>
-                  <label>Phone Number</label>
-                  <FormGroup>
-                    <Input type="text" value={this.state.PhoneNumber} onChange={this.setPhoneNumber} />
-                  </FormGroup>
-                  <label>Information</label>
-                  <FormGroup>
-                    <textarea className="form-control" type="text" value={this.state.Information} onChange={this.setInformation} />
-                  </FormGroup>
-                  <FormGroup>
-              
 
-          
+
+
+
+                  <label>Concret Pad</label>
+
+
+
+                  <FormGroup>
+                  <FormGroup check className="form-check-radio" inline>
+                    <Label className="form-check-label">
+                      <Input type="radio" name="exampleRadios" id="exampleRadios1" value="option1" defaultChecked/>
+                      N/A
+            <span className="form-check-sign"></span>
+                    </Label>
                   </FormGroup>
+                  <FormGroup check className="form-check-radio" inline>
+                    <Label className="form-check-label">
+                      <Input type="radio" name="exampleRadios" id="exampleRadios2" value="option2"/>
+                      Yes
+          <span className="form-check-sign"></span>
+                    </Label>
+                  </FormGroup>
+                  <FormGroup check className="form-check-radio" inline>
+                    <Label className="form-check-label">
+                      <Input type="radio" name="exampleRadios" id="exampleRadios3" value="option1"/>
+                      No
+          <span className="form-check-sign"></span>
+                    </Label>
+                  </FormGroup>
+                  </FormGroup>
+
+
+
+
+
+
+                  <label>Equipaments</label>
+                  <FormGroup>
+                    <Switch
+                      defaultValue={false}
+                      offColor="primary"
+                      offText="No"
+                      onColor="primary"
+                      onText="Yes"
+                    />{" "}
+                  </FormGroup>
+
+
+                  <label>Parts</label>
+                  <FormGroup>
+                    <Switch
+                      defaultValue={false}
+                      offColor="primary"
+                      offText="No"
+                      onColor="primary"
+                      onText="Yes"
+                    />{" "}
+                  </FormGroup>
+
+
+                  <label>Follow Up</label>
+                  <FormGroup>
+                    <MultiSelect
+                      options={optionsFollow}
+                      selected={this.state.locationsSelected}
+                      onSelectedChanged={locationsSelected => this.setState({ locationsSelected })}
+                    />
+                  </FormGroup>
+
                 </Form>
 
 
 
                 <Button className="btn-fill" color="info" type="submit" onClick={this.enviaForm}>
-                      Create New
+                  Create New
                   </Button>
 
                 <Button className="btn-fill" color="success" onClick={this.atualizaForm}>
-                      Save Editions
+                  Save Editions
                   </Button>
 
 
@@ -517,6 +721,7 @@ class RegisterSchedule extends React.Component {
                     this.state.lista}
                   onRowClick={data => {
                   }}
+                  filterable
                   columns={[
                     {
                       Header: "#",

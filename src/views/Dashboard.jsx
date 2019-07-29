@@ -92,11 +92,12 @@ class Dashboard extends React.Component {
       });
     }
   }
-Í
+  Í
 
 
-
-
+  componentDidMount() {
+    console.log(window.localStorage.getItem('auth-token'));
+  }
 
   setBgChartData = name => {
     this.setState({
@@ -104,10 +105,7 @@ class Dashboard extends React.Component {
     });
   };
 
-
-
   render() {
-
     const style = {
       width: '50vw',
       height: '75vh',
@@ -115,8 +113,9 @@ class Dashboard extends React.Component {
       'marginRight': 'auto'
     }
 
-
     return (
+
+
       <>
         <div className="content">
           <Row>
@@ -128,6 +127,7 @@ class Dashboard extends React.Component {
                     <Col className="text-left" sm="6">
                       <h5 className="card-category">Total Shipments</h5>
                       <CardTitle tag="h2">Performance</CardTitle>
+
                     </Col>
                     <Col sm="6">
                       <ButtonGroup
@@ -1139,52 +1139,6 @@ class Dashboard extends React.Component {
                       />
                     </Col>
                   </Row>
-
-                  <Row>
-
-
-
-
-                  <Map
-        item
-        xs = { 12 }
-                        
-        google = { this.props.google }
-        onClick = { this.onMapClick }
-        zoom = { 14 }
-        initialCenter = {{ lat: 39.648209, lng: -75.711185 }}
-      >
-        <Marker
-          onClick = { this.onMarkerClick }
-          title = { 'Changing Colors Garage' }
-          position = {{ lat: 39.648209, lng: -75.711185 }}
-          name = { 'Changing Colors Garage' }
-        />
-        <InfoWindow
-          marker = { this.state.activeMarker }
-          visible = { this.state.showingInfoWindow }
-        >
-          <a>
-            <p
-              variant = 'headline'
-              component = 'h4'
-            >
-              Changing Colors Garage
-            </p>
-            <p
-              component = 'p'
-            >
-              98G Albe Dr Newark, DE 19702 <br />
-              302-293-8627
-            </p>
-          </a>
-        </InfoWindow>
-      </Map>
-
-
-
-
-                  </Row>
                 </CardBody>
               </Card>
             </Col>
@@ -1195,6 +1149,4 @@ class Dashboard extends React.Component {
   }
 }
 
-export default GoogleApiWrapper({
-  apiKey: ("AIzaSyDUzl8evAposmqeMkDLeWm_Q84UktbpAxk")
-})(Dashboard);
+export default Dashboard;

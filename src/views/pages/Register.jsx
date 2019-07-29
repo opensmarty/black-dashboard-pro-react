@@ -3,6 +3,7 @@ import axios from "axios";
 // react component used to create sweet alerts
 import ReactBSAlert from "react-bootstrap-sweetalert";
 import logo from "assets/img/logo.png";
+
 // reactstrap components
 import {
   Button,
@@ -79,7 +80,7 @@ class Register extends React.Component {
 
   registerUser(evento) {
     evento.preventDefault();
-    axios.post('http://localhost:8080/api/users/create', { Name: this.state.Name, Email: this.state.Email, Password: this.state.Password })
+    axios.post('http://localhost:5000/api/users/create', { Name: this.state.Name, Email: this.state.Email, Password: this.state.Password })
       .then(res => {
         alert("Good Job!");
         return res.json();

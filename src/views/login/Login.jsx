@@ -42,9 +42,13 @@ class Login extends React.Component {
     evento.preventDefault();
      
     
-
-    axios.post('https://app-back-obie.herokuapp.com/api/users/login', { Email: this.state.Email, Password: this.state.Password })
-    //axios.post('http://localhost:8080/api/users/login', { Email: this.state.Email, Password: this.state.Password })
+    
+   // axios.post('https://app-back-obie.herokuapp.com/api/users/login', { Email: this.state.Email, Password: this.state.Password }, 
+    //{
+     // headers: { 
+     // "Content-Type": "application/x-www-form-urlencoded"
+   // }})
+    axios.post('http://localhost:5000/api/users/login', { Email: this.state.Email, Password: this.state.Password })
     .then(response => {
 
     
@@ -59,6 +63,7 @@ class Login extends React.Component {
         localStorage.setItem('auth-token', token);
         browserHistory.push('/admin/dashboard');
         window.location.reload();
+
       })
       .catch(error => {
         this.setState({ msg: error.message });

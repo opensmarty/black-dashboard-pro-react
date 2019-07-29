@@ -20,7 +20,7 @@ import Typography from "views/components/Typography.jsx";
 import Panels from "views/components/Panels.jsx";
 import Icons from "views/components/Icons.jsx";
 import Pricing from "views/pages/Pricing.jsx";
-import Timeline from "views/pages/Timeline.jsx";
+import Timeline from "views/schedule/Timeline.jsx";
 import User from "views/pages/User.jsx";
 import Login from "views/login/Login.jsx";
 import Register from "views/pages/Register.jsx";
@@ -65,6 +65,15 @@ const routes = [
         component: Schedule,
         layout: "/admin",
       }, 
+      {
+        path: "/Timeline",
+        name: "Timeline",
+        rtlName: "عالتسعير",
+        mini: "TM",
+        rtlMini: "ع",
+        component: Timeline,
+        layout: "/admin"
+      }, 
     ]
   },
   {
@@ -92,6 +101,7 @@ const routes = [
         component: Register,
         layout: "/auth"
       },  
+
     ]
   },
 ];

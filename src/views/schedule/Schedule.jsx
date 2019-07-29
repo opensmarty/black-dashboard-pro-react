@@ -32,6 +32,9 @@ class Schedule extends React.Component {
       lista: [],
       teamSelected: [],
 
+
+      teamScheduled: [],
+
       //controle modal
       openedCollapses: ["collapseOne"]
     };
@@ -45,11 +48,24 @@ class Schedule extends React.Component {
       DateStart: this.state.DateStart,
     };
 
-    
-    //axios.post('http://localhost:8080/api/schedule/selectByDate/', data)
-    axios.post('https://app-back-obie.herokuapp.com/api/schedule/selectByDate/', data)
+    axios.post('http://localhost:5000/api/schedule/selectByDate/', data)
+      //axios.post('https://app-back-obie.herokuapp.com/api/schedule/selectByDate/', data)
       .then(res => {
+
+        this.setState({ lista: [] });
         this.setState({ lista: res.data });
+
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }
+
+
+  setTeamSelected() {
+    axios.get('http://localhost:5000/api/schedule/team/')
+      .then(res => {
+        this.setState({ teamScheduled: res.data });
       })
       .catch(error => {
         console.log(error);
@@ -58,6 +74,8 @@ class Schedule extends React.Component {
 
   //Ao abrir a página executará funções
   componentDidMount() {
+
+    this.setTeamSelected();
   }
 
   collapsesToggle = collapse => {
@@ -109,14 +127,17 @@ class Schedule extends React.Component {
                 <CardHeader>
                   <Col xs={12} md={12}>
                     {
-                      this.state.lista.map(function (schedule) {
+                      this.state.lista.map(function (schedule, index) {
+
                         return (
+
                           <blockquote className="blockquote">
-                            <h4><b>Contact Name:</b> {schedule.Name}</h4>
-                            <h4><b>Date Start:</b> <Moment format="DD-MM-YYYY">{schedule.DateStart}</Moment></h4>
-                            <h4><b>Forecast</b><Moment format="DD-MM-YYYY">{schedule.DateEnd}</Moment></h4>
-                            <h4><b>Contact Name:</b> {schedule.ContactName}</h4>
-                            <h4><b>Address:</b> {schedule.Address} - {schedule.City} - {schedule.StateDesc}</h4>
+                            <h4><b>Job Number: </b> {schedule.ScheduleId}</h4>
+                            <h4><b>Name Installer: </b> {schedule.Name}</h4>
+                            <h4><b>Date Start: </b> <Moment format="DD-MM-YYYY">{schedule.DateStart}</Moment></h4>
+                            <h4><b>Forecast: </b><Moment format="DD-MM-YYYY">{schedule.DateEnd}</Moment></h4>
+                            <h4><b>Contact Name: </b> {schedule.ContactName}</h4>
+                            <h4><b>Address: </b> {schedule.Address} - {schedule.City} - {schedule.StateDesc}</h4>
                             <Button className="btn-icon btn-simple" color="success" size="sm" href="#collapseExample" id="linkToggler">
                               <i className="fa fa-info"></i>
                             </Button>{' '}
@@ -144,6 +165,7 @@ class Schedule extends React.Component {
                               </Card>
                             </UncontrolledCollapse>
                           </blockquote>
+
                         );
                       })
                     }
