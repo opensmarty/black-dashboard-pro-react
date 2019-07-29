@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import moment from "moment";
-import Select from "react-select";
 import { Formik, Field } from "formik";
 import ReactDatetime from "react-datetime";
 import axios from "axios";
@@ -9,29 +8,29 @@ import MultiSelect from "@khanacademy/react-multi-select";
 import Switch from 'react-bootstrap-switch';
 
 import {
+  Button,
   Card,
   CardBody,
   CardHeader,
   CardTitle,
-  CardSubtitle,
-  Row,
   Col,
+  Collapse,
   Form,
-  Table,
-  Label,
-  Input,
-  Modal, ModalHeader, ModalBody, ModalFooter,
   FormGroup,
-  Button
+  Input,
+  Label,
+  Modal, ModalHeader, ModalBody, ModalFooter,
+  Row,
+  Table
 } from "reactstrap";
-import { format } from 'util';
-import { width } from '@material-ui/system';
 
 class RegisterSchedule extends React.Component {
 
   constructor(props, context) {
     super(props, context);
     this.state = {
+
+      //********************ARRAYS*******************//
       //lista todos os schedules
       lista: [],
 
@@ -41,10 +40,28 @@ class RegisterSchedule extends React.Component {
       //lista todos do team que foram selecionados
       teamSelected: [],
 
+      //locations
+      locations: [],
+      locationsSelected: [],
+
+      //followUp
+      followUp: [],
+      followUpSelected: [],
+
+      //********************DATES*******************//
       //variaveis do form
       DateSold: moment(),
+      DateWalk: moment(),
       DateStart: moment(),
       DateEnd: moment(),
+      DateConcreteStart: moment(),
+      DateConcreteEnd: moment(),
+      DateShopEnd: moment(),
+      DateRepairStart: moment(),
+      DateRepairEnd: moment(),
+      DateAllSet: moment(),
+
+      //********************SINGLE*******************//
       JobDescription: '',
       Address: '',
       City: '',
@@ -54,35 +71,31 @@ class RegisterSchedule extends React.Component {
       PhoneNumber: '',
       Information: '',
       Status: '',
-
-      //armazena id do schedule selecionado na table
       ScheduleId: '',
-
-      //controle modal
       modal: false,
-
-
-
-
-
-
-
-
-
-      locations: [],
-      locationsSelected: [],
-
-
-      followUp: [],
-      followUpSelected: []
-
+      ConcretePad: 1,
+      Repair: 1,
+      WalkThru: false,
+      Equipment: false,
+      Parts: false,
+      collapseRepair: false,
     };
+
+    this.setDateAllSet = this.setDateAllSet.bind(this);
+    this.setDateShopEnd = this.setDateShopEnd.bind(this);
+    this.setDateConcreteStart = this.setDateConcreteStart.bind(this);
+    this.setDateConcreteEnd= this.setDateConcreteEnd.bind(this);
+    this.setDateRepairStart = this.setDateRepairStart.bind(this);
+    this.setDateRepairEnd= this.setDateRepairEnd.bind(this);
+    this.setDateWalk = this.setDateWalk.bind(this);
+    this.setRepair = this.setRepair.bind(this);
+    this.setParts = this.setParts.bind(this);
+    this.setEquipment = this.setEquipment.bind(this);
+    this.setWalkThru = this.setWalkThru.bind(this);
+    this.setConcretePad = this.setConcretePad.bind(this);
     this.atualizaForm = this.atualizaForm.bind(this);
     this.toggle = this.toggle.bind(this);
     this.enviaForm = this.enviaForm.bind(this);
-
-
-
     this.setDateSold = this.setDateSold.bind(this);
     this.setDateStart = this.setDateStart.bind(this);
     this.setDateEnd = this.setDateEnd.bind(this);
@@ -96,7 +109,17 @@ class RegisterSchedule extends React.Component {
     this.setPhoneNumber = this.setPhoneNumber.bind(this);
     this.selectTeam = this.selectTeam.bind(this);
     this.removeTeam = this.removeTeam.bind(this);
+    this.cancelForm = this.cancelForm.bind(this);
+  }
 
+  toggleRepair() {
+    this.setState({
+      collapseRepair: !this.state.collapseRepair
+    });
+  }
+
+  cancelForm() {
+    this.setState({ ScheduleId: '' });
   }
 
   //Seleciona o schedule para alteracao
@@ -113,13 +136,25 @@ class RegisterSchedule extends React.Component {
       PhoneNumber: props.original.PhoneNumber,
       Information: props.original.Information,
       JobDescription: props.original.JobDescription,
-      ScheduleId: props.original.ScheduleId
+      ScheduleId: props.original.ScheduleId,
+      ConcretePad: props.original.ConcretePad,
+      WalkThru: Boolean(props.original.WalkThru),
+      Equipment: props.original.Equipment,
+      Parts: props.original.Parts,
+      Repair: props.original.Repair,
+      DateAllSet: moment(props.original.DateAllSet),
+      DateConcreteStart: moment(props.original.DateConcreteStart),
+      DateConcreteEnd: moment(props.original.DateConcreteEnd),
+      DateRepairStart: moment(props.original.DateRepairStart),
+      DateRepairEnd: moment(props.original.DateRepairEnd),
+      DateShopEnd: moment(props.original.DateShopEnd),
     });
   }
 
   //Registra dados do schedule
   enviaForm(evento) {
     var data = {
+      DateSold: this.state.DateSold,
       DateStart: this.state.DateStart,
       DateEnd: this.state.DateEnd,
       Address: this.state.Address,
@@ -130,6 +165,10 @@ class RegisterSchedule extends React.Component {
       PhoneNumber: this.state.PhoneNumber,
       Information: this.state.Information,
       JobDescription: this.state.JobDescription,
+      ConcretePad: this.state.ConcretePad,
+      WalkThru: this.state.WalkThru,
+      Equipment: this.state.Equipment,
+      Parts: this.state.Parts,
     };
 
     evento.preventDefault();
@@ -137,23 +176,33 @@ class RegisterSchedule extends React.Component {
     //axios.post('https://app-back-obie.herokuapp.com/api/schedule/create', data)
     axios.post('http://localhost:5000/api/schedule/create', data)
       .then(res => {
-
         this.listaSchedule();
-
+        console.log(res);
         alert("Good Job!");
+
       })
       .catch(error => {
         console.log(error);
       });
   }
 
-
   //Registra dados do schedule
   atualizaForm(evento) {
     var data = {
+
+      //********************DATES*******************//
       DateSold: moment(this.state.DateSold),
       DateStart: moment(this.state.DateStart),
       DateEnd: moment(this.state.DateEnd),
+      DateConcreteStart: moment(this.state.DateConcreteStart),
+      DateConcreteEnd: moment(this.state.DateConcreteEnd),
+      DateRepairStart: moment(this.state.DateRepairStart),
+      DateRepairEnd: moment(this.state.DateRepairEnd),
+      DateWalk: moment(this.state.DateWalk),
+      DateShopEnd: moment(this.state.DateShopEnd),
+      DateAllSet: moment(this.state.DateAllSet),  
+
+      //********************SINGLE*******************//
       Address: this.state.Address,
       City: this.state.City,
       StateDesc: this.state.StateDesc,
@@ -162,24 +211,60 @@ class RegisterSchedule extends React.Component {
       PhoneNumber: this.state.PhoneNumber,
       Information: this.state.Information,
       JobDescription: this.state.JobDescription,
-      ScheduleId: this.state.ScheduleId
+      ScheduleId: this.state.ScheduleId,
+      ConcretePad: this.state.ConcretePad,
+      Repair: this.state.Repair,
+      WalkThru: this.state.WalkThru, 
+      Equipment: this.state.Equipament,
+      Parts: this.state.Parts
     };
 
-    console.log(data);
-
     evento.preventDefault();
-
     //axios.post('https://app-back-obie.herokuapp.com/api/schedule/update', data)
     axios.post('http://localhost:5000/api/schedule/update', data)
       .then(res => {
-
         this.listaSchedule();
+
+        this.enviaLocation(this.state.ScheduleId);
+
 
         alert("Good Job!");
       })
       .catch(error => {
         console.log(error);
       });
+  }
+
+  enviaLocation(scheduleId){
+    console.log("Doido", scheduleId);
+  }
+
+  setDateAllSet(evento) {
+    this.setState({ DateAllSet: moment(evento) });
+  }
+
+  setDateShopEnd(evento) {
+    this.setState({ DateShopEnd: moment(evento) });
+  }
+
+  setDateRepairStart(evento) {
+    this.setState({ DateRepairStart: moment(evento) });
+  }
+
+  setDateRepairEnd(evento) {
+    this.setState({ DateRepairEnd: moment(evento) });
+  }
+
+  setDateConcreteStart(evento) {
+    this.setState({ DateConcreteStart: moment(evento) });
+  }
+
+  setDateConcreteEnd(evento) {
+    this.setState({ DateConcreteEnd: moment(evento) });
+  }
+
+  setDateWalk(evento) {
+    this.setState({ DateWalk: moment(evento) });
   }
 
 
@@ -226,6 +311,26 @@ class RegisterSchedule extends React.Component {
   setStateDesc(evento) {
     this.setState({ StateDesc: evento.target.value });
   }
+
+  setConcretePad(evento) {
+    this.setState({ ConcretePad: evento.target.value });
+  }
+
+  setWalkThru() {
+    this.setState({ WalkThru: !this.state.WalkThru });
+    //  this.setState({ WalkThru: evento.target.value });
+  }
+
+  setEquipment() {
+    this.setState({ Equipment: !this.state.Equipment });
+    //  this.setState({ WalkThru: evento.target.value });
+  }
+
+  setParts() {
+    this.setState({ Parts: !this.state.Parts });
+    //  this.setState({ WalkThru: evento.target.value });
+  }
+
 
   //Retorna schedule cadastrado
   listaSchedule() {
@@ -310,8 +415,6 @@ class RegisterSchedule extends React.Component {
     var data = {
       ScheduleId: id.original.ScheduleId,
     };
-
-
     //axios.post('https://app-back-obie.herokuapp.com/api/schedule/delete/', data)
     axios.post('http://localhost:5000/api/schedule/delete/', data)
       .then(res => {
@@ -375,7 +478,9 @@ class RegisterSchedule extends React.Component {
   };
 
 
-
+  setRepair(evento) {
+    this.setState({ Repair: evento.target.value });
+  }
 
   //Ao abrir a página executará funções
   componentDidMount() {
@@ -450,6 +555,11 @@ class RegisterSchedule extends React.Component {
     let optionsFollow = this.state.followUp.map(function (follow) {
       return { value: follow.FollowUpId, label: follow.Desc };
     })
+
+
+
+
+
 
     return (
       <div className="content">
@@ -564,134 +674,315 @@ class RegisterSchedule extends React.Component {
 
 
 
-                  <label>Date Start</label>
-                  <FormGroup>
-                    <ReactDatetime
-                      inputProps={{
-                        className: "form-control",
-                        placeholder: "Date scheduling",
-                      }}
-                      id="DateStart"
-                      name="DateStart"
-                      value={this.state.DateStart}
-                      onChange={this.setDateStart}
-                    />
-                  </FormGroup>
-                  <label>Complete Date</label>
-                  <FormGroup>
-                    <ReactDatetime
-                      inputProps={{
-                        className: "form-control",
-                        placeholder: "Date scheduling",
-                      }}
-                      id="DateEnd"
-                      name="DateEnd"
-                      value={this.state.DateEnd}
-                      onChange={this.setDateEnd}
-                    />
-                  </FormGroup>
 
 
 
 
 
-                  <label>Place</label>
-                  <FormGroup>
-                    <MultiSelect
-                      options={optionsLocations}
-                      selected={this.state.locationsSelected}
-                      onSelectedChanged={locationsSelected => this.setState({ locationsSelected })}
-                    />
-                  </FormGroup>
-
-
-                  <label>Walk Thru</label>
-                  <FormGroup>
-                    <Switch
-                      defaultValue={false}
-                      offColor="primary"
-                      offText="No"
-                      onColor="primary"
-                      onText="Yes"
-                    />{" "}
-                  </FormGroup>
 
 
 
+                  <blockquote className="blockquote">
+                    <label>Walk Thru Scheduled?</label>
+                    <FormGroup>
+                      <Switch
+                        defaultValue={false}
+                        value={this.state.WalkThru}
+                        onChange={this.setWalkThru}
+                        offColor="primary"
+                        offText="No"
+                        onColor="primary"
+                        onText="Yes"
+                      />{" "}
+                    </FormGroup>
 
-                  <label>JobDescription</label>
-                  <FormGroup>
-                    <textarea className="form-control" type="text" value={this.state.JobDescription} onChange={this.setJobDescription} />
-                  </FormGroup>
+                    <Collapse isOpen={this.state.WalkThru === true}>
+
+
+
+                    <label>Date Schedule Walk Thru
+                    </label>
+                    <FormGroup>
+                      <ReactDatetime
+                        inputProps={{
+                          className: "form-control",
+                          placeholder: "Date scheduling",
+                        }}
+                        id="DateWalk"
+                        name="DateWalk"
+                        value={this.state.DateWalk}
+                        onChange={this.setDateWalk}
+                      />
+                    </FormGroup>
 
 
 
 
-                  <label>Concret Pad</label>
+                    <label>Place</label>
+                    <FormGroup>
+                      <MultiSelect
+                        options={optionsLocations}
+                        selected={this.state.locationsSelected}
+                        onSelectedChanged={locationsSelected => this.setState({ locationsSelected })}
+                      />
+                    </FormGroup>
+
+
+                    <label>JobDescription</label>
+                    <FormGroup>
+                      <textarea className="form-control" type="text" value={this.state.JobDescription} onChange={this.setJobDescription} />
+                    </FormGroup>
 
 
 
-                  <FormGroup>
-                  <FormGroup check className="form-check-radio" inline>
-                    <Label className="form-check-label">
-                      <Input type="radio" name="exampleRadios" id="exampleRadios1" value="option1" defaultChecked/>
-                      N/A
+
+
+                    <label>Date Start</label>
+                    <FormGroup>
+                      <ReactDatetime
+                        inputProps={{
+                          className: "form-control",
+                          placeholder: "Date scheduling",
+                        }}
+                        id="DateStart"
+                        name="DateStart"
+                        value={this.state.DateStart}
+                        onChange={this.setDateStart}
+                      />
+                    </FormGroup>
+                    <label>Prediction Finish</label>
+                    <FormGroup>
+                      <ReactDatetime
+                        inputProps={{
+                          className: "form-control",
+                          placeholder: "Date scheduling",
+                        }}
+                        id="DateEnd"
+                        name="DateEnd"
+                        value={this.state.DateEnd}
+                        onChange={this.setDateEnd}
+                      />
+                    </FormGroup>
+
+                    </Collapse>
+                  </blockquote>
+                  <blockquote className="blockquote">
+
+
+                    <label>Concret Pad</label>
+
+
+                    <FormGroup>
+                      <FormGroup check className="form-check-radio" inline>
+                        <Label className="form-check-label">
+                          <Input type="radio" name="concretPad" id="exampleRadios1" value="1" checked={this.state.ConcretePad === 1} onChange={ConcretePad => this.setState({ ConcretePad: 1 })} />
+                          N/A
             <span className="form-check-sign"></span>
-                    </Label>
-                  </FormGroup>
-                  <FormGroup check className="form-check-radio" inline>
-                    <Label className="form-check-label">
-                      <Input type="radio" name="exampleRadios" id="exampleRadios2" value="option2"/>
-                      Yes
+                        </Label>
+                      </FormGroup>
+                      <FormGroup check className="form-check-radio" inline>
+                        <Label className="form-check-label">
+                          <Input type="radio" name="concretPad" id="exampleRadios2" value="2" checked={this.state.ConcretePad === 2} onChange={ConcretePad => this.setState({ ConcretePad: 2 })} />
+                          Yes
           <span className="form-check-sign"></span>
-                    </Label>
-                  </FormGroup>
-                  <FormGroup check className="form-check-radio" inline>
-                    <Label className="form-check-label">
-                      <Input type="radio" name="exampleRadios" id="exampleRadios3" value="option1"/>
-                      No
+                        </Label>
+                      </FormGroup>
+                      <FormGroup check className="form-check-radio" inline>
+                        <Label className="form-check-label">
+                          <Input type="radio" name="concretPad" id="exampleRadios3" value="3" checked={this.state.ConcretePad === 3} onChange={ConcretePad => this.setState({ ConcretePad: 3 })} />
+                          No
           <span className="form-check-sign"></span>
-                    </Label>
-                  </FormGroup>
-                  </FormGroup>
+                        </Label>
+                      </FormGroup>
+                    </FormGroup>
+
+
+
+
+
+                    <Collapse isOpen={this.state.ConcretePad === 2}>
+
+                      <label>Schedule Date</label>
+                      <FormGroup>
+                        <ReactDatetime
+                          inputProps={{
+                            className: "form-control",
+                            placeholder: "Date scheduling",
+                          }}
+                          id="setDateConcreteStart"
+                          name="setDateConcreteStart"
+                          value={this.state.DateConcreteStart}
+                          onChange={this.setDateConcreteStart}
+                        />
+                      </FormGroup>
+                      <label>Finish Step</label>
+                      <FormGroup>
+                        <ReactDatetime
+                          inputProps={{
+                            className: "form-control",
+                            placeholder: "Date scheduling",
+                          }}
+                          id="setDateConcreteEnd"
+                          name="setDateConcreteEnd"
+                          value={this.state.DateConcreteEnd}
+                          onChange={this.setDateConcreteEnd}
+                        />
+                      </FormGroup>
+                    </Collapse>
+
+
+                  </blockquote>
+
+
+
+
+                  <blockquote className="blockquote">
+                    <label>Equipment</label>
+                    <FormGroup>
+                      <Switch
+                        defaultValue={false}
+                        value={this.state.Equipment}
+                        onChange={this.setEquipment}
+                        offColor="primary"
+                        offText="No"
+                        onColor="primary"
+                        onText="Yes"
+                      />{" "}
+                    </FormGroup>
+
+
+                    <label>Parts</label>
+                    <FormGroup>
+                      <Switch
+                        defaultValue={false}
+                        value={this.state.Parts}
+                        onChange={this.setParts}
+                        offColor="primary"
+                        offText="No"
+                        onColor="primary"
+                        onText="Yes"
+                      />{" "}
+                    </FormGroup>
+
+                    <label>Finish Step</label>
+                    <FormGroup>
+                      <ReactDatetime
+                        inputProps={{
+                          className: "form-control",
+                          placeholder: "Date scheduling",
+                        }}
+                        id="setDateShopEnd"
+                        name="setDateShopEnd"
+                        value={this.state.DateShopEnd}
+                        onChange={this.setDateShopEnd}
+                      />
+                    </FormGroup>
+
+                  </blockquote>
+
+
+
+                  <blockquote className="blockquote">
+                    <label>Repair</label>
+
+
+                    <FormGroup>
+                      <FormGroup check className="form-check-radio" inline>
+                        <Label className="form-check-label">
+                          <Input type="radio" name="RepairRadios" value="1" checked={this.state.Repair === 1} onChange={Repair => this.setState({ Repair: 1 })} />
+                          N/A
+<span className="form-check-sign"></span>
+                        </Label>
+                      </FormGroup>
+                      <FormGroup check className="form-check-radio" inline>
+                        <Label className="form-check-label">
+                          <Input type="radio" name="RepairRadios" value="2" checked={this.state.Repair === 2} onChange={Repair => this.setState({ Repair: 2 })} />
+                          Yes
+<span className="form-check-sign"></span>
+                        </Label>
+                      </FormGroup>
+                      <FormGroup check className="form-check-radio" inline>
+                        <Label className="form-check-label">
+                          <Input type="radio" name="RepairRadios" value="3" checked={this.state.Repair === 3} onChange={Repair => this.setState({ Repair: 3 })} />
+                          No
+<span className="form-check-sign"></span>
+                        </Label>
+                      </FormGroup>
+                    </FormGroup>
+
+
+
+                    <Collapse isOpen={this.state.Repair === 2}>
+                      <label>Repair Date</label>
+                      <FormGroup>
+                        <ReactDatetime
+                          inputProps={{
+                            className: "form-control",
+                            placeholder: "Date scheduling",
+                          }}
+                          id="DateRepairStart"
+                          name="DateRepairStart"
+                          value={this.state.DateRepairStart}
+                          onChange={this.setDateRepairStart}
+                        />
+                      </FormGroup>
+                      <label>Finish Step</label>
+                      <FormGroup>
+                        <ReactDatetime
+                          inputProps={{
+                            className: "form-control",
+                            placeholder: "Date scheduling",
+                          }}
+                          id="DateRepairEnd"
+                          name="DateRepairEnd"
+                          value={this.state.DateRepairEnd}
+                          onChange={this.setDateRepairEnd}
+                        />
+                      </FormGroup>
+
+                    </Collapse>
 
 
 
 
 
 
-                  <label>Equipaments</label>
-                  <FormGroup>
-                    <Switch
-                      defaultValue={false}
-                      offColor="primary"
-                      offText="No"
-                      onColor="primary"
-                      onText="Yes"
-                    />{" "}
-                  </FormGroup>
+
+                  </blockquote>
 
 
-                  <label>Parts</label>
-                  <FormGroup>
-                    <Switch
-                      defaultValue={false}
-                      offColor="primary"
-                      offText="No"
-                      onColor="primary"
-                      onText="Yes"
-                    />{" "}
-                  </FormGroup>
 
 
-                  <label>Follow Up</label>
-                  <FormGroup>
-                    <MultiSelect
-                      options={optionsFollow}
-                      selected={this.state.locationsSelected}
-                      onSelectedChanged={locationsSelected => this.setState({ locationsSelected })}
-                    />
-                  </FormGroup>
+
+
+                  <blockquote className="blockquote">
+                    <label>Follow Up</label>
+                    <FormGroup>
+                      <MultiSelect
+                        options={optionsFollow}
+                        selected={this.state.followUpSelected}
+                        onSelectedChanged={followUpSelected => this.setState({ followUpSelected })}
+                      />
+                    </FormGroup>
+
+
+                    <label>All Set Date </label>
+                    <FormGroup>
+                      <ReactDatetime
+                        inputProps={{
+                          className: "form-control",
+                          placeholder: "Date scheduling",
+                        }}
+                        id="DateEnd"
+                        name="DateEnd"
+                        value={this.state.DateAllSet}
+                        onChange={this.setDateAllSet}
+                      />
+                    </FormGroup>
+
+                  </blockquote>
+
+
 
                 </Form>
 
@@ -701,11 +992,13 @@ class RegisterSchedule extends React.Component {
                   Create New
                   </Button>
 
-                <Button className="btn-fill" color="success" onClick={this.atualizaForm}>
+                <Button className="btn-fill" color="success" onClick={this.atualizaForm} disabled={!this.state.ScheduleId}>
                   Save Editions
                   </Button>
 
-
+                <Button className="btn-fill" color="warning" onClick={this.cancelForm} disabled={!this.state.ScheduleId}>
+                  Cancel
+                  </Button>
 
               </CardBody>
             </Card>
