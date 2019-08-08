@@ -55,12 +55,53 @@ class Schedule extends React.Component {
         this.setState({ lista: [] });
         this.setState({ lista: res.data });
 
+
+     
+
+
+
+
+
+
       })
       .catch(error => {
         console.log(error);
       });
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 
   setTeamSelected() {
     axios.get('http://localhost:5000/api/schedule/team/')
@@ -76,6 +117,7 @@ class Schedule extends React.Component {
   componentDidMount() {
 
     this.setTeamSelected();
+  
   }
 
   collapsesToggle = collapse => {

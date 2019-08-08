@@ -25,6 +25,12 @@ class Timeline extends React.Component {
             <Col md="12">
               <Card className="card-timeline card-plain">
                 <CardBody>
+
+
+
+
+
+
                   <ul className="timeline">
                     <li className="timeline-inverted">
                       <div className="timeline-badge danger">
@@ -52,6 +58,11 @@ class Timeline extends React.Component {
                         </h6>
                       </div>
                     </li>
+
+
+
+
+
                     <li>
                       <div className="timeline-badge success">
                         <i className="tim-icons icon-user-run" />
@@ -74,6 +85,13 @@ class Timeline extends React.Component {
                         </div>
                       </div>
                     </li>
+
+
+
+
+
+
+                    
                     <li className="timeline-inverted">
                       <div className="timeline-badge info">
                         <i className="tim-icons icon-notes" />

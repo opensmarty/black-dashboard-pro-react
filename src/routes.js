@@ -31,6 +31,9 @@ import Schedule from "views/schedule/Schedule";
 import RegisterSchedule from "views/schedule/RegisterSchedule";
 import Download from "views/support/Download.jsx";
 
+import BackOffice from "views/schedule/BackOffice";
+import Customer from "views/schedule/Customer"
+
 const routes = [
   {
     path: "/dashboard",
@@ -46,7 +49,25 @@ const routes = [
     rtlName: "صفحات",
     icon: "tim-icons icon-calendar-60",
     state: "pagesCollapse",
-    views: [    
+    views: [  
+      {
+        path: "/customer",
+        name: "Customer",
+        rtlName: "عالتسعير",
+        mini: "CT",
+        rtlMini: "ع",
+        component: Customer,
+        layout: "/admin"
+      },   
+      {
+        path: "/backoffice",
+        name: "BackOffice",
+        rtlName: "عالتسعير",
+        mini: "BK",
+        rtlMini: "ع",
+        component: BackOffice,
+        layout: "/admin"
+      },  
       {
         path: "/register",
         name: "Register",

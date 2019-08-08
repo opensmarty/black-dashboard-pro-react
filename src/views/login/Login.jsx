@@ -2,7 +2,12 @@ import React from "react";
 import { BrowserRouter as Router } from 'react-router-dom';
 import { browserHistory } from 'react-router';
 import axios from "axios";
-import { render } from 'react-dom'
+import { render } from 'react-dom';
+import { Link } from 'react-router-dom';
+
+import ApolloClient from 'apollo-boost';
+import gql from 'graphql-tag';
+import { useMutation } from '@apollo/react-hooks';
 
 
 // reactstrap components
@@ -14,6 +19,7 @@ import {
   CardFooter,
   CardTitle,
   Form,
+
   Input,
   InputGroupAddon,
   InputGroupText,
@@ -22,61 +28,58 @@ import {
   Col
 } from "reactstrap";
 
+export const AUTH_TOKEN = 'auth-token'
+
+const client = new ApolloClient({
+  uri: 'http://localhost:3000/graphql',
+});
+
+const ADD_TODO = gql`
+mutation createNewToken($email: String!, $password: String!) {
+  createToken(email: $email, password: $password) {
+    token
+  }
+}
+`
 class Login extends React.Component {
 
   constructor(props) {
-    super();
+    super(props);
     this.state = {
-      Email: '',
-      Password: '',
+      email: '',
+      password: '',
       msg: ''
     };
 
     this.setUserName = this.setUserName.bind(this);
     this.setPassword = this.setPassword.bind(this);
+    this.enviaLogin = this.enviaLogin.bind(this);
   }
 
   // send form for validation the login
   enviaLogin(evento) {
-
+    this.setState({ msg: '' });
     evento.preventDefault();
-     
-    
-    
-   // axios.post('https://app-back-obie.herokuapp.com/api/users/login', { Email: this.state.Email, Password: this.state.Password }, 
-    //{
-     // headers: { 
-     // "Content-Type": "application/x-www-form-urlencoded"
-   // }})
-    axios.post('http://localhost:5000/api/users/login', { Email: this.state.Email, Password: this.state.Password })
-    .then(response => {
-
-    
-        if (response.data.auth == true) {
-          localStorage.setItem('userLog', response.data);
-          return response;
-        } else {
-          throw new Error('não foi possível fazer o login');
-        }
-      })
-      .then(token => {
-        localStorage.setItem('auth-token', token);
-        browserHistory.push('/admin/dashboard');
-        window.location.reload();
-
-      })
-      .catch(error => {
-        this.setState({ msg: error.message });
-      });
+    client.mutate({
+      mutation: ADD_TODO,
+      variables: { email: this.state.email, password: this.state.password },
+      optimisticResponse: {},
+    }).then(res => {
+      localStorage.setItem('auth-token', res.data.createToken);
+      browserHistory.push('/admin/dashboard');
+      window.location.reload();
+    }).catch(error => {
+      this.setState({ msg: error.message });
+    });
   }
 
   // select email for login
   setUserName(evento) {
-    this.setState({ Email: evento.target.value });
+    this.setState({ email: evento.target.value });
   }
   // select password for login
   setPassword(evento) {
-    this.setState({ Password: evento.target.value });
+    this.setState({ password: evento.target.value });
   }
 
   componentDidMount() {
@@ -88,19 +91,22 @@ class Login extends React.Component {
   }
 
   render() {
+
+
+    const authToken = localStorage.getItem(AUTH_TOKEN)
     return (
       <>
         <div className="content">
           <Container>
             <Col className="ml-auto mr-auto" lg="4" md="6">
-              <Form className="form" onSubmit={this.enviaLogin.bind(this)}>
+              <Form className="form" onSubmit={this.enviaLogin}>
                 <Card className="card-login card-white">
                   <CardHeader>
                     <img
                       alt="..."
                       src={require("assets/img/card-danger.png")}
                     />
-                   <CardTitle tag="h1">Log in</CardTitle>
+                    <CardTitle tag="h1">Log in</CardTitle>
                   </CardHeader>
                   <CardBody>
                     <InputGroup>
@@ -130,6 +136,7 @@ class Login extends React.Component {
                     >
                       Get Started
                     </Button>
+                    <label>{this.state.msg}</label>
                   </CardFooter>
                 </Card>
               </Form>
@@ -139,7 +146,6 @@ class Login extends React.Component {
       </>
     );
   }
-
   handleChange(e) {
     this.setState(
       {
@@ -147,7 +153,6 @@ class Login extends React.Component {
       }
     )
   }
-
 }
 
 export default Login;
