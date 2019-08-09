@@ -45,7 +45,6 @@ class BackOffice extends React.Component {
         this.selectEdit = this.selectEdit.bind(this);
         this.updateScheduleWalk = this.updateScheduleWalk.bind(this);
  
-
     }
 
     setDateWalk(evento) {

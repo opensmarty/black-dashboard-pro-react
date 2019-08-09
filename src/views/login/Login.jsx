@@ -7,8 +7,6 @@ import { Link } from 'react-router-dom';
 
 import ApolloClient from 'apollo-boost';
 import gql from 'graphql-tag';
-import { useMutation } from '@apollo/react-hooks';
-
 
 // reactstrap components
 import {
@@ -19,7 +17,6 @@ import {
   CardFooter,
   CardTitle,
   Form,
-
   Input,
   InputGroupAddon,
   InputGroupText,
@@ -65,7 +62,7 @@ class Login extends React.Component {
       variables: { email: this.state.email, password: this.state.password },
       optimisticResponse: {},
     }).then(res => {
-      localStorage.setItem('auth-token', res.data.createToken);
+      localStorage.setItem('auth-token', res.data.createToken.token);
       browserHistory.push('/admin/dashboard');
       window.location.reload();
     }).catch(error => {
