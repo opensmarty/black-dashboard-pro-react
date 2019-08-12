@@ -6,13 +6,10 @@ import ReactTable from "react-table";
 import ReactDatetime from "react-datetime";
 import SweetAlert from 'react-bootstrap-sweetalert';
 
-import { ApolloProvider, Query, graphql } from 'react-apollo';
-
-
+import { graphql, ApolloProvider, Query } from 'react-apollo';
 import ApolloClient from 'apollo-boost';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import gql from 'graphql-tag';
-
 
 import {
     Button,
@@ -27,7 +24,7 @@ import {
     Table,
     Row
 } from "reactstrap";
-
+import { storeKeyNameFromField } from 'apollo-utilities';
 
 const token = localStorage.getItem('auth-token');
 
@@ -38,8 +35,6 @@ const client = new ApolloClient({
         authorization: token ? `Bearer ${token}` : "",
     }
 });
-
-
 
 const getScheduleList = gql`
 query getScheduleList($first: Int, $offset: Int) {
@@ -73,6 +68,36 @@ mutation createNewSchedule($scheduleInput: ScheduleInput!) {
 	}
 }
 `
+
+const updateExistingSchedule = gql`
+mutation updateExistingSchedule($scheduleInput: ScheduleInput!) {
+	updateSchedule(input: $scheduleInput) {
+	    DateSold
+        Address
+        City
+        StateName
+        ZipCode
+        GoogleMaps
+        CustomerName
+        CustomerPhone
+        Information
+	}
+}
+`
+
+const deleteExistingSchedule = gql`
+mutation deleteExistingSchedule($id: ID!) {
+	deleteSchedule(id: $id)
+}
+`
+
+
+
+
+
+
+
+
 
 
 class Customer extends React.Component {
@@ -109,8 +134,11 @@ class Customer extends React.Component {
         this.setInformation = this.setInformation.bind(this);
 
         //********************EVENTS*******************//
-        this.listSchedule = this.listSchedule.bind(this);
+
         this.createSchedule = this.createSchedule.bind(this);
+        this.updateCustomer = this.updateCustomer.bind(this);
+        this.removeCustomer = this.removeCustomer.bind(this);
+
 
         //Alerts
         this.successCreatedAlert = this.successCreatedAlert.bind(this);
@@ -121,9 +149,6 @@ class Customer extends React.Component {
 
         // Set the apollo client
         this.client = props.client;
-
-
-
     }
 
     setDateSold(evento) {
@@ -163,19 +188,6 @@ class Customer extends React.Component {
     }
 
 
-    // Retorna toda lista do schedule
-    listSchedule() {
-        this.setState({ msg: '' });
-        client.query({
-            query: getScheduleList,
-            optimisticResponse: {}
-        }).then(res => {
-            this.setState({ list: res.data.schedules })
-        }).catch(error => {
-            this.setState({ msg: error.message });
-        });
-    }
-
     //Select the schedule for update
     selectEdit(props) {
         this.setState({
@@ -188,12 +200,13 @@ class Customer extends React.Component {
             CustomerName: props.original.CustomerName,
             CustomerPhone: props.original.CustomerPhone,
             Information: props.original.Information,
+            FollowUp: props.original.FollowUp,
             ScheduleId: props.original.ScheduleId
         });
     }
 
     //Select the schedule for update
-    createSchedule = async () => {
+    createSchedule() {
 
         var scheduleInput = {
             DateSold: this.state.DateSold,
@@ -204,7 +217,8 @@ class Customer extends React.Component {
             GoogleMaps: this.state.GoogleMaps,
             CustomerName: this.state.CustomerName,
             CustomerPhone: this.state.CustomerPhone,
-            Information: this.state.Information
+            Information: this.state.Information,
+            FollowUp: 1
         }
         client.mutate({
             mutation: createNewSchedule,
@@ -213,19 +227,62 @@ class Customer extends React.Component {
             refetchQueries: () => [{ query: getScheduleList }]
 
         }).then(res => {
-
-
-
             this.successCreatedAlert();
         }).catch(error => {
             this.setState({ msg: error.message });
         });
-
     }
 
+    //Post object for update schedule
+    updateCustomer() {
+        var scheduleInput = {
+            DateSold: this.state.DateSold,
+            Address: this.state.Address,
+            City: this.state.City,
+            StateName: this.state.StateName,
+            ZipCode: this.state.ZipCode,
+            GoogleMaps: this.state.GMaps,
+            CustomerName: this.state.CustomerName,
+            CustomerPhone: this.state.CustomerPhone,
+            Information: this.state.Information,
+            FollowUp: 1,
+
+            ScheduleId: this.state.ScheduleId
+        };
+        client.mutate({
+            mutation: updateExistingSchedule,
+            variables: { scheduleInput },
+            optimisticResponse: {},
+            refetchQueries: () => [{ query: getScheduleList }]
+
+        }).then(res => {
+            this.clearImputs();
+            this.successCreatedAlert();
+        }).catch(error => {
+            this.setState({ msg: error.message });
+        });
+    }
+
+    //Deletar schedule selecionado.
+    removeCustomer(props) {
+
+        this.setState({ ScheduleId: props.original.ScheduleId })
+
+        client.mutate({
+            mutation: deleteExistingSchedule,
+            variables: { id: this.state.ScheduleId },
+            optimisticResponse: {},
+            refetchQueries: () => [{ query: getScheduleList }]
+
+        }).then(res => {
+            this.successCreatedAlert();
+        }).catch(error => {
+            this.setState({ msg: error.message });
+        });
+    }
 
     componentDidMount() {
-        this.listSchedule();
+   
     }
 
 
@@ -243,56 +300,8 @@ class Customer extends React.Component {
             CustomerName: '',
             CustomerPhone: '',
             Information: '',
+            ScheduleId: null
         });
-    }
-
-
-
-
-    //Post object for update schedule
-    updateCustomer(evento) {
-
-        let data = {
-            DateSold: this.state.DateSold,
-            Address: this.state.Address,
-            City: this.state.City,
-            StateName: this.state.StateName,
-            ZipCode: this.state.ZipCode,
-            GoogleMaps: this.state.GMaps,
-            CustomerName: this.state.CustomerName,
-            CustomerPhone: this.state.CustomerPhone,
-            Information: this.state.Information,
-            ScheduleId: this.state.ScheduleId
-        };
-
-        evento.preventDefault();
-        //axios.post('https://app-back-obie.herokuapp.com/api/schedule/update', data)
-        axios.post('http://localhost:5000/api/schedule/customer/update', data)
-            .then(res => {
-                this.ListCustomer();
-                this.clearImputs(); //limpa campos//
-                this.successUpdatedAlert();
-            })
-            .catch(error => {
-                console.log(error);
-            });
-    }
-
-    //Deletar schedule selecionado.
-    removeCustomer(id) {
-        var data = {
-            ScheduleId: id.original.ScheduleId,
-        };
-        //axios.post('https://app-back-obie.herokuapp.com/api/schedule/delete/', data)
-        axios.post('http://localhost:5000/api/schedule/delete/', data)
-            .then(res => {
-                this.ListCustomer();
-                this.clearImputs();
-                this.hideAlert();
-            })
-            .catch(error => {
-                console.log(error);
-            });
     }
 
     successCreatedAlert() {
@@ -356,6 +365,7 @@ class Customer extends React.Component {
 
 
     render() {
+
         var columns = [
             {
                 Header: "#",
@@ -396,39 +406,6 @@ class Customer extends React.Component {
                 accessor: "CustomerPhone",
             },
         ];
-
-        function ScheduleList({ loading, schedules }) {
-            if (loading) {
-                return <div>Loading</div>;
-            } else {
-                return (
-                    <div className="App">
-                        <ReactTable className="-striped -highlight"
-                            data={schedules}
-                            columns={columns}
-                            filterable
-                            defaultPageSize={10}
-                            className="-striped -highlight"
-                            getTdProps={(state, rowInfo, column, instance) => {
-                                if (rowInfo === undefined) {
-                                    return {}; // for blank rows...
-                                }
-                                rowInfo.field = column.id;
-                                return {};
-                            }}
-                        />
-                    </div>
-                );
-            }
-        }
-
-        const ScheduleListWithData = graphql(getScheduleList, {
-            props: ({ data: { loading, schedules } }) => ({
-                loading,
-                schedules,
-            }),
-        })(ScheduleList);
-
 
         return (
             <div className="content">
@@ -510,11 +487,36 @@ class Customer extends React.Component {
                                 <CardTitle tag="h4">Customer Job List</CardTitle>
                             </CardHeader>
                             <CardBody>
-
                                 <ApolloProvider client={client}>
-                                    <ScheduleListWithData />
-                                </ApolloProvider>
 
+                                    <Query query={getScheduleList}>
+
+                                        {({ data, error, loading }) => {
+                                            if (error) return '💩 Oops!';
+                                            if (loading) return 'Patience young grasshopper...';
+
+                                            return (
+                                                <div>
+                                                    <ReactTable data={data.schedules}
+                                                        columns={columns}
+
+                                                        filterable
+                                                        defaultPageSize={10}
+                                                        className="-striped -highlight"
+                                                        //getTdProps={(state, rowInfo, column, instance) => {
+                                                           // if (rowInfo === undefined) {
+                                                          //      return {}; // for blank rows...
+                                                          //  }
+                                                           // rowInfo.field = column.id;
+                                                          //  return {};
+                                                       // }}
+                                                    />
+                                                </div>
+                                            );
+                                        }}
+                                    </Query>
+
+                                </ApolloProvider>
                             </CardBody>
                         </Card>
                     </Col>
