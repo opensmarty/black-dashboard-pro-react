@@ -56,6 +56,40 @@ query getScheduleList($first: Int, $offset: Int) {
 }
 `
 
+const getGroupsUsers = gql`
+query getGroupList($first: Int, $offset: Int) {
+	groups(first: $first, offset: $offset) {
+		GroupId
+		Role
+		Desc
+		users {
+			id,
+			name, 
+			email
+		}
+	}
+}
+`
+
+const getAllTypesPermits = gql`
+query getAllTypesPermits($first: Int, $offset: Int) {
+	permits(first: $first, offset: $offset) {
+		PermitId
+		Type
+	}
+}
+`
+
+const getAllSericeSuppliers = gql`
+query getAllSericeSuppliers($first: Int, $offset: Int) {
+	suppliers(first: $first, offset: $offset) {
+		SupplierId
+        Name
+        Type
+	}
+}
+`
+
 
 
 class BackOffice extends React.Component {
@@ -71,6 +105,23 @@ class BackOffice extends React.Component {
             Parts: false,
             Equipment: false,
 
+
+
+
+            WalkInformation: '',
+            DateWalkthruSchedule: null,
+            DateWalkthruExecution: null,
+
+
+            //LISTAS
+            GroupsUserList: [],
+            groupUserListSelected: [],
+
+            PermitTypeList: [],
+            permitTypeListSelected: [],
+
+            SupplierServiceList: [],
+            supplierServiceListSelected: [],
         };
 
         this.selectEdit = this.selectEdit.bind(this);
@@ -80,30 +131,121 @@ class BackOffice extends React.Component {
         this.setSupplier = this.setSupplier.bind(this);
         this.setParts = this.setParts.bind(this);
         this.setEquipment = this.setEquipment.bind(this);
+        this.setWalkInformation = this.setWalkInformation.bind(this);
 
 
+        this.setDateWalkthruSchedule = this.setDateWalkthruSchedule.bind(this);
+        this.setDateWalkthruSchedule = this.setDateWalkthruSchedule.bind(this);
+        this.getGroupsUserList = this.getGroupsUserList.bind(this);
+        this.getAllTypesPermits = this.getAllTypesPermits.bind(this);
+        this.getAllServiceSuppliers = this.getAllServiceSuppliers.bind(this);
+
+        
     }
 
 
+    setWalkInformation(evento) {
+        this.setState({ WalkInformation: evento.target.value });
+    }
+
     setConcretePad(evento) {
         this.setState({ ConcretePad: evento.target.value });
-      }
+    }
 
-      setPermit(evento) {
+    setPermit(evento) {
         this.setState({ Permit: !this.state.Permit });
-      }
+    }
 
-      setSupplier(evento) {
+    setSupplier(evento) {
         this.setState({ Supplier: !this.state.Supplier });
-      }
+    }
 
-      setParts(evento) {
+    setParts(evento) {
         this.setState({ Parts: !this.state.Parts });
-      }
+    }
 
-      setEquipment(evento) {
+    setEquipment(evento) {
         this.setState({ Equipment: !this.state.Equipment });
-      }
+    }
+
+
+    setDateWalkthruSchedule(evento) {
+        this.setState({ DateWalkthruSchedule: moment(evento) });
+    }
+
+    setDateWalkthruExecution(evento) {
+        this.setState({ DateWalkthruExecution: moment(evento) });
+    }
+
+
+    getGroupsUserList() {
+        client.query({
+            query: getGroupsUsers,
+            optimisticResponse: {},
+        }).then(res => {
+            var listaGrupo = [res.data];
+            for (var i = 0; i < listaGrupo.length; i++) {
+                for (var j = 0; j < listaGrupo[i].groups.length; j++) {
+                    if (listaGrupo[i].groups[j].GroupId == 1) {
+                        this.setState({ GroupsUserList: listaGrupo[i].groups[j].users })
+                    }
+                }
+            }
+        }).catch(error => {
+            this.setState({ msg: error.message });
+        });
+    }
+
+    getAllTypesPermits() {
+        client.query({
+            query: getAllTypesPermits,
+            optimisticResponse: {},
+        }).then(res => {
+            var listaPermits = [res.data];
+
+            for (var i = 0; i < listaPermits.length; i++) {
+
+                this.setState({ PermitTypeList: listaPermits[i].permits });
+  
+            }
+
+        }).catch(error => {
+            this.setState({ msg: error.message });
+        });
+    }
+
+    getAllServiceSuppliers() {
+        client.query({
+            query: getAllSericeSuppliers,
+            optimisticResponse: {},
+        }).then(res => {
+
+
+            var listaSuppliers = [res.data];
+
+
+
+            console.log(res);
+
+
+            for (var i = 0; i < listaSuppliers.length; i++) {
+
+
+
+ 
+
+               // if (listaSuppliers[i].Type == 1) {
+                this.setState({ SupplierServiceList: listaSuppliers[i].suppliers });
+        //    }
+            }
+        }).catch(error => {
+            this.setState({ msg: error.message });
+        });
+    }
+
+
+
+
 
     //Select the schedule for update
     selectEdit(props) {
@@ -114,8 +256,9 @@ class BackOffice extends React.Component {
 
 
     componentDidMount() {
-
-
+        this.getGroupsUserList();
+        this.getAllTypesPermits();
+        this.getAllServiceSuppliers();
     }
 
     render(props) {
@@ -161,10 +304,19 @@ class BackOffice extends React.Component {
             },
         ];
 
-        //remodela o array de locais
-        //  let optionsLocations = this.state.locations.map(function (location) {
-        //     return { value: location.LocationId, label: location.Desc };
-        //  })
+
+        let optionsUserWalk = this.state.GroupsUserList.map(function (group) {
+            return { value: group.id, label: group.name };
+        })
+
+
+        let optionsListPermits = this.state.PermitTypeList.map(function (permit) {
+            return { value: permit.PermitId, label: permit.Type };
+        })
+
+        let optionsListServiceSuppliers = this.state.SupplierServiceList.map(function (supplier) {
+            return { value: supplier.SupplierId, label: supplier.Name };
+        })
 
         return (
             <div className="content">
@@ -180,19 +332,53 @@ class BackOffice extends React.Component {
                                 <h4><b>Customer Name:</b> {this.state.CustomerName} </h4>
                                 <h4><b>Address</b> {this.state.Address} </h4>
 
-
                                 <Form action="#" onSubmit={this.updateScheduleExecution}>
 
-
-
                                     <blockquote className="blockquote">
-
+                                        <h5>Walk Thru Scheduled</h5>
+                                        <label>Date Scheduled</label>
+                                        <FormGroup>
+                                            <ReactDatetime
+                                                inputProps={{
+                                                    className: "form-control",
+                                                    placeholder: "Date scheduling",
+                                                }}
+                                                id="DateWalkthruSchedule"
+                                                name="DateWalkthruSchedule"
+                                                value={this.state.DateWalkthruSchedule}
+                                                onChange={this.setDateWalkthruSchedule}
+                                            />
+                                        </FormGroup>
+                                        <label>Who</label>
+                                        <FormGroup>
+                                            <MultiSelect
+                                                options={optionsUserWalk}
+                                                selected={this.state.groupUserListSelected}
+                                                onSelectedChanged={groupUserListSelected => this.setState({ groupUserListSelected })}
+                                            />
+                                        </FormGroup>
                                         <label>Walk Thru Information</label>
                                         <FormGroup>
                                             <textarea className="form-control" type="text" value={this.state.WalkInformation || ''} onChange={this.setWalkInformation} />
                                         </FormGroup>
-                                    </blockquote>
+                                        <Collapse isOpen={this.state.DateWalkthruSchedule !== null}>
+                                            <label>Date Walk Thru Finish</label>
+                                            <FormGroup>
+                                                <ReactDatetime
+                                                    inputProps={{
+                                                        className: "form-control",
+                                                        placeholder: "Date scheduling",
+                                                    }}
+                                                    id="DateWalkthruExecution"
+                                                    name="DateWalkthruExecution"
+                                                    value={this.state.DateWalkthruExecution}
+                                                    onChange={this.setDateWalkthruExecution}
+                                                />
+                                            </FormGroup>
 
+
+                                        </Collapse>
+                                    </blockquote>
 
 
 
@@ -295,7 +481,11 @@ class BackOffice extends React.Component {
                                             <FormGroup>
 
 
-
+                                                <MultiSelect
+                                                    options={optionsListPermits}
+                                                    selected={this.state.permitTypeListSelected}
+                                                    onSelectedChanged={permitTypeListSelected => this.setState({ permitTypeListSelected })}
+                                                />
 
                                             </FormGroup>
 
@@ -324,7 +514,11 @@ class BackOffice extends React.Component {
                                         <Collapse isOpen={this.state.Supplier === true}>
                                             <label>Supplier Name</label>
                                             <FormGroup>
-
+                                            <MultiSelect
+                                                    options={optionsListServiceSuppliers}
+                                                    selected={this.state.supplierServiceListSelected}
+                                                    onSelectedChanged={supplierServiceListSelected => this.setState({ supplierServiceListSelected })}
+                                                />
                                             </FormGroup>
                                             <label>Date Supplier Scheduled</label>
                                             <FormGroup>
@@ -527,6 +721,112 @@ class BackOffice extends React.Component {
 
 
                                     </blockquote>
+
+
+
+                                    <blockquote className="blockquote">
+                                        <label>Path and Paint</label>
+                                        <FormGroup>
+                                            <FormGroup check className="form-check-radio" inline>
+                                                <Label className="form-check-label">
+                                                    <Input type="radio" name="RepairRadios" value="1" checked={this.state.Repair === 1} onChange={Repair => this.setState({ Repair: 1 })} />
+                                                    N/A
+<span className="form-check-sign"></span>
+                                                </Label>
+                                            </FormGroup>
+                                            <FormGroup check className="form-check-radio" inline>
+                                                <Label className="form-check-label">
+                                                    <Input type="radio" name="RepairRadios" value="2" checked={this.state.Repair === 2} onChange={Repair => this.setState({ Repair: 2 })} />
+                                                    Yes
+<span className="form-check-sign"></span>
+                                                </Label>
+                                            </FormGroup>
+                                            <FormGroup check className="form-check-radio" inline>
+                                                <Label className="form-check-label">
+                                                    <Input type="radio" name="RepairRadios" value="3" checked={this.state.Repair === 3} onChange={Repair => this.setState({ Repair: 3 })} />
+                                                    No
+<span className="form-check-sign"></span>
+                                                </Label>
+                                            </FormGroup>
+                                        </FormGroup>
+                                        <Collapse isOpen={this.state.Repair === 2}>
+                                            <label>Date Scheduled</label>
+                                            <FormGroup>
+                                                <ReactDatetime
+                                                    inputProps={{
+                                                        className: "form-control",
+                                                        placeholder: "Date scheduling",
+                                                    }}
+                                                    id="DateRepairStart"
+                                                    name="DateRepairStart"
+                                                    value={this.state.DateRepairStart}
+                                                    onChange={this.setDateRepairStart}
+                                                />
+                                            </FormGroup>
+                                            <label>Finish Step</label>
+                                            <FormGroup>
+                                                <ReactDatetime
+                                                    inputProps={{
+                                                        className: "form-control",
+                                                        placeholder: "Date scheduling",
+                                                    }}
+                                                    id="DateRepairEnd"
+                                                    name="DateRepairEnd"
+                                                    value={this.state.DateRepairEnd}
+                                                    onChange={this.setDateRepairEnd}
+                                                />
+                                            </FormGroup>
+                                        </Collapse>
+                                    </blockquote>
+
+
+                                    <blockquote className="blockquote">
+                                        <h5>Final - Walk Thru</h5>
+                                        <label>Who</label>
+                                        <FormGroup>
+
+                                        </FormGroup>
+                                        <label>Date Walk Thru Scheduled</label>
+                                        <FormGroup>
+                                            <ReactDatetime
+                                                inputProps={{
+                                                    className: "form-control",
+                                                    placeholder: "Date scheduling",
+                                                }}
+                                                id="DateWalkthruSchedule"
+                                                name="DateWalkthruSchedule"
+                                                value={this.state.DateWalkthruSchedule}
+                                                onChange={this.setDateWalkthruSchedule}
+                                            />
+                                        </FormGroup>
+
+
+                                        <label>Date Walk Thru Finish</label>
+                                        <FormGroup>
+                                            <ReactDatetime
+                                                inputProps={{
+                                                    className: "form-control",
+                                                    placeholder: "Date scheduling",
+                                                }}
+                                                id="DateWalkthruExecution"
+                                                name="DateWalkthruExecution"
+                                                value={this.state.DateWalkthruExecution}
+                                                onChange={this.setDateWalkthruExecution}
+                                            />
+                                        </FormGroup>
+
+                                        <label>Walk Thru Information</label>
+                                        <FormGroup>
+                                            <textarea className="form-control" type="text" value={this.state.WalkInformation || ''} onChange={this.setWalkInformation} />
+                                        </FormGroup>
+                                    </blockquote>
+
+
+
+
+
+
+
 
 
 

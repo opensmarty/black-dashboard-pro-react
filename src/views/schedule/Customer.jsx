@@ -227,6 +227,7 @@ class Customer extends React.Component {
             refetchQueries: () => [{ query: getScheduleList }]
 
         }).then(res => {
+            this.clearImputs();
             this.successCreatedAlert();
         }).catch(error => {
             this.setState({ msg: error.message });
