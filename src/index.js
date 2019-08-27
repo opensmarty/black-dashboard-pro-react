@@ -13,23 +13,30 @@ import "react-notification-alert/dist/animate.css";
 
 const hist = createBrowserHistory();
 
-
 function verificaAutenticacao(nextState, replace) {
-  console.log("storage");
+
   if (localStorage.getItem('auth-token') === null) {
     replace('/?msg=você precisa estar logado para acessar o endereço');
   }
 }
 
 ReactDOM.render(
+
+
+
+
   <Router history={hist}>
     <Switch>
       <Route path="/auth" render={props => <AuthLayout {...props} />} />
-      <Route path="/admin" render={props => <AdminLayout {...props} />} onEnter={verificaAutenticacao} />
+      <Route path="/admin" render={props => <AdminLayout {...props} />} />
       <Route path="/rtl" render={props => <RTLLayout {...props} />} />
       <Redirect from="/" to="/auth/login" />
     </Switch>
   </Router>,
+
+
+
+
   document.getElementById("root")
 );
 

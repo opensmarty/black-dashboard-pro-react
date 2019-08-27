@@ -1,15 +1,15 @@
-import React, { Component } from 'react';
-import { browserHistory } from 'react-router';
+import React from 'react';
 import moment from "moment";
-import axios from "axios";
 import ReactTable from "react-table";
 import ReactDatetime from "react-datetime";
 import SweetAlert from 'react-bootstrap-sweetalert';
-
-import { graphql, ApolloProvider, Query } from 'react-apollo';
+import { useQuery, useMutation } from "@apollo/react-hooks";
+import { ApolloProvider, Query, Mutation } from 'react-apollo';
 import ApolloClient from 'apollo-boost';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import gql from 'graphql-tag';
+
+import { getScheduleList, createNewSchedule, updateExistingSchedule, deleteExistingSchedule } from "../../queries/schedule";
 
 import {
     Button,
@@ -21,10 +21,8 @@ import {
     Form,
     FormGroup,
     Input,
-    Table,
     Row
 } from "reactstrap";
-import { storeKeyNameFromField } from 'apollo-utilities';
 
 const token = localStorage.getItem('auth-token');
 
@@ -36,76 +34,14 @@ const client = new ApolloClient({
     }
 });
 
-const getScheduleList = gql`
-query getScheduleList($first: Int, $offset: Int) {
-	schedules(first: $first, offset: $offset) {
-        ScheduleId
-        DateSold
-        Address 
-        City
-        StateName
-        ZipCode
-        GoogleMaps
-        CustomerName
-        CustomerPhone
-        Information
-	}
-}
-`
-
-const createNewSchedule = gql`
-mutation createNewSchedule($scheduleInput: ScheduleInput!) {
-	createSchedule(input: $scheduleInput) {
-	    DateSold
-        Address
-        City
-        StateName
-        ZipCode
-        GoogleMaps
-        CustomerName
-        CustomerPhone
-        Information
-	}
-}
-`
-
-const updateExistingSchedule = gql`
-mutation updateExistingSchedule($scheduleInput: ScheduleInput!) {
-	updateSchedule(input: $scheduleInput) {
-	    DateSold
-        Address
-        City
-        StateName
-        ZipCode
-        GoogleMaps
-        CustomerName
-        CustomerPhone
-        Information
-	}
-}
-`
-
-const deleteExistingSchedule = gql`
-mutation deleteExistingSchedule($id: ID!) {
-	deleteSchedule(id: $id)
-}
-`
-
-
-
-
-
-
-
-
-
-
 class Customer extends React.Component {
+
+
 
     constructor(props, context) {
         super(props, context);
         this.state = {
-            //********************STEP 1 SOLD*******************//
+            //************************STEP 1 SOLD***********************//
             ScheduleId: '',
             DateSold: moment(),
             Address: '',
@@ -116,13 +52,15 @@ class Customer extends React.Component {
             CustomerName: '',
             CustomerPhone: '',
             Information: '',
-            //********************ARRAYS SUPPORT*******************//
+            //************************ARRAYS SUPPORT*******************//
             //list todos os schedules
             list: [],
             alert: null,
             msg: ''
+
+
         };
-        //********************ATTRIBUTES*******************//
+        //********************ATTRIBUTES***************************//
         this.setDateSold = this.setDateSold.bind(this);
         this.setAddress = this.setAddress.bind(this);
         this.setCity = this.setCity.bind(this);
@@ -133,12 +71,13 @@ class Customer extends React.Component {
         this.setCustomerPhone = this.setCustomerPhone.bind(this);
         this.setInformation = this.setInformation.bind(this);
 
-        //********************EVENTS*******************//
+        //********************EVENTS******************************//
 
         this.createSchedule = this.createSchedule.bind(this);
         this.updateCustomer = this.updateCustomer.bind(this);
         this.removeCustomer = this.removeCustomer.bind(this);
 
+        this.selectEdit = this.selectEdit.bind(this);
 
         //Alerts
         this.successCreatedAlert = this.successCreatedAlert.bind(this);
@@ -147,9 +86,11 @@ class Customer extends React.Component {
 
 
 
+
         // Set the apollo client
         this.client = props.client;
     }
+
 
     setDateSold(evento) {
         this.setState({ DateSold: moment(evento) });
@@ -187,9 +128,9 @@ class Customer extends React.Component {
         this.setState({ Information: evento.target.value });
     }
 
-
     //Select the schedule for update
     selectEdit(props) {
+
         this.setState({
             DateSold: moment(props.original.DateSold),
             Address: props.original.Address,
@@ -207,7 +148,6 @@ class Customer extends React.Component {
 
     //Select the schedule for update
     createSchedule() {
-
         var scheduleInput = {
             DateSold: this.state.DateSold,
             Address: this.state.Address,
@@ -218,7 +158,6 @@ class Customer extends React.Component {
             CustomerName: this.state.CustomerName,
             CustomerPhone: this.state.CustomerPhone,
             Information: this.state.Information,
-            FollowUp: 1
         }
         client.mutate({
             mutation: createNewSchedule,
@@ -227,6 +166,10 @@ class Customer extends React.Component {
             refetchQueries: () => [{ query: getScheduleList }]
 
         }).then(res => {
+
+
+
+
             this.clearImputs();
             this.successCreatedAlert();
         }).catch(error => {
@@ -234,8 +177,12 @@ class Customer extends React.Component {
         });
     }
 
+
+
+
     //Post object for update schedule
-    updateCustomer() {
+    updateCustomer(evento) {
+
         var scheduleInput = {
             DateSold: this.state.DateSold,
             Address: this.state.Address,
@@ -246,22 +193,29 @@ class Customer extends React.Component {
             CustomerName: this.state.CustomerName,
             CustomerPhone: this.state.CustomerPhone,
             Information: this.state.Information,
-            FollowUp: 1,
-
             ScheduleId: this.state.ScheduleId
         };
+
         client.mutate({
             mutation: updateExistingSchedule,
             variables: { scheduleInput },
             optimisticResponse: {},
+
             refetchQueries: () => [{ query: getScheduleList }]
 
+
         }).then(res => {
-            this.clearImputs();
+
+
+            console.log(res);
+
             this.successCreatedAlert();
+
         }).catch(error => {
             this.setState({ msg: error.message });
         });
+
+        this.clearImputs();
     }
 
     //Deletar schedule selecionado.
@@ -283,11 +237,9 @@ class Customer extends React.Component {
     }
 
     componentDidMount() {
-   
+
+
     }
-
-
-
 
     clearImputs() {
         this.setState({
@@ -365,7 +317,15 @@ class Customer extends React.Component {
     }
 
 
+
+
+
     render() {
+
+
+
+
+
 
         var columns = [
             {
@@ -374,12 +334,11 @@ class Customer extends React.Component {
                     return (
                         <div>
                             <Button className="btn-icon btn-simple" color="success" size="sm" onClick={() => { this.selectEdit(props) }}>
-                                <i className="fa fa-edit" />
+                                <i className="fa fa-hand-pointer" />
                             </Button>{` `}
                             <Button className="btn-icon btn-simple" color="danger" size="sm" onClick={() => { this.successDeleteAlert(props) }}>
                                 <i className="fa fa-times" />
-                            </Button>
-
+                            </Button>{` `}
                         </div>
                     )
                 }
@@ -408,9 +367,65 @@ class Customer extends React.Component {
             },
         ];
 
+
+        const UpdateCustomerList = () => {
+
+            var scheduleInput = {
+                DateSold: this.state.DateSold,
+                Address: this.state.Address,
+                City: this.state.City,
+                StateName: this.state.StateName,
+                ZipCode: this.state.ZipCode,
+                GoogleMaps: this.state.GMaps,
+                CustomerName: this.state.CustomerName,
+                CustomerPhone: this.state.CustomerPhone,
+                Information: this.state.Information,
+                ScheduleId: this.state.ScheduleId
+            };
+
+            client.mutate({
+
+                mutation: updateExistingSchedule,
+                variables: { scheduleInput },
+                optimisticResponse: {},
+
+                update(client, { data: { updateCustomerList } }) {
+                  
+                  
+                    const { schedules } = client.readQuery({ query: getScheduleList });
+                  
+                    
+                  
+                    client.writeQuery({
+
+                        query: getScheduleList,
+
+                        data: { schedules: schedules.concat([updateCustomerList]) },
+
+                    })
+                    console.log(schedules);
+                },
+                refetchQueries: () => [{ query: getScheduleList }]
+
+            }).then(res => {
+                this.successCreatedAlert();
+
+            }).catch(error => {
+                this.setState({ msg: error.message });
+            });
+
+        };
+
+
+
+
         return (
+
+
+
+
             <div className="content">
-                <Row className="mt-12">
+                <Row>
                     <Col md="5">
                         <Card >
                             {this.state.alert}
@@ -418,8 +433,8 @@ class Customer extends React.Component {
                                 <CardTitle tag="h4">Register Customer Job</CardTitle>
                             </CardHeader>
                             <CardBody>
-                                <Form action="#" onSubmit={this.createSchedule}>
 
+                                <Form action="#" onSubmit={this.createSchedule}>
                                     <blockquote className="blockquote">
                                         <label>Date Sold</label>
                                         <FormGroup>
@@ -469,19 +484,16 @@ class Customer extends React.Component {
                                     </blockquote>
 
                                 </Form>
-                                <Button className="btn-fill" color="info" type="submit" onClick={this.createSchedule}>
-                                    Create New
-                  </Button>
-                                <Button className="btn-fill" color="success" onClick={this.updateCustomer} disabled={!this.state.ScheduleId}>
-                                    Save Editions
-                  </Button>
-                                <Button className="btn-fill" color="warning" onClick={this.cancelForm} disabled={!this.state.ScheduleId}>
-                                    Cancel
-                  </Button>
+
+                                <Button className="btn-fill" color="info" type="submit" onClick={this.createSchedule}>Create New</Button>
+                                <Button className="btn-fill" color="success" onClick={UpdateCustomerList} disabled={!this.state.ScheduleId}>Save Editions</Button>
+                                <Button className="btn-fill" color="warning" onClick={this.cancelForm} disabled={!this.state.ScheduleId}>Cancel</Button>
                             </CardBody>
                         </Card>
                     </Col>
+                </Row>
 
+                <Row>
                     <Col xs={12} md={12}>
                         <Card>
                             <CardHeader>
@@ -489,38 +501,37 @@ class Customer extends React.Component {
                             </CardHeader>
                             <CardBody>
                                 <ApolloProvider client={client}>
-
                                     <Query query={getScheduleList}>
 
                                         {({ data, error, loading }) => {
                                             if (error) return '💩 Oops!';
                                             if (loading) return 'Patience young grasshopper...';
-
                                             return (
                                                 <div>
-                                                    <ReactTable data={data.schedules}
+                                                    <ReactTable
+                                                        data={data.schedules}
                                                         columns={columns}
-
-                                                        filterable
                                                         defaultPageSize={10}
+                                                        filterable
+
                                                         className="-striped -highlight"
-                                                        //getTdProps={(state, rowInfo, column, instance) => {
-                                                           // if (rowInfo === undefined) {
-                                                          //      return {}; // for blank rows...
-                                                          //  }
-                                                           // rowInfo.field = column.id;
-                                                          //  return {};
-                                                       // }}
+                                                        getTdProps={(state, rowInfo, column, instance) => {
+                                                            if (rowInfo === undefined) {
+                                                                return {}; // for blank rows...
+                                                            }
+                                                            rowInfo.field = column.id;
+                                                            return {};
+                                                        }}
                                                     />
                                                 </div>
                                             );
                                         }}
                                     </Query>
-
                                 </ApolloProvider>
                             </CardBody>
                         </Card>
                     </Col>
+
                 </Row>
             </div >
         );

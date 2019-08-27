@@ -20,19 +20,21 @@ import Typography from "views/components/Typography.jsx";
 import Panels from "views/components/Panels.jsx";
 import Icons from "views/components/Icons.jsx";
 import Pricing from "views/pages/Pricing.jsx";
-import Timeline from "views/schedule/Timeline.jsx";
+import TimelineSchedule from "views/schedule/TimelineSchedule";
 import User from "views/pages/User.jsx";
 import Login from "views/login/Login.jsx";
 import Register from "views/pages/Register.jsx";
 import Rtl from "views/pages/Rtl.jsx";
 import Lock from "views/pages/Lock.jsx";
-import Title from "views/adm/Title.jsx";
 import Schedule from "views/schedule/Schedule";
 import RegisterSchedule from "views/schedule/RegisterSchedule";
 import Download from "views/support/Download.jsx";
 
 import BackOffice from "views/schedule/BackOffice";
 import Customer from "views/schedule/Customer"
+import Execution from "views/schedule/Execution";
+
+import Gallery from "views/gallery/Gallery";
 
 const routes = [
   {
@@ -66,7 +68,8 @@ const routes = [
         mini: "BK",
         rtlMini: "ع",
         component: BackOffice,
-        layout: "/admin"
+        layout: "/admin",
+        invisible: true,
       },  
       {
         path: "/register",
@@ -78,6 +81,15 @@ const routes = [
         layout: "/admin"
       },   
       {
+        path: "/execution",
+        name: "Execution",
+        rtlName: "عالتسعير",
+        mini: "EX",
+        rtlMini: "ع",
+        component: Execution,
+        layout: "/admin"
+      }, 
+      {
         path: "/shedule",
         name: "Panel",
         rtlName: "عالتسعير",
@@ -85,15 +97,6 @@ const routes = [
         rtlMini: "ع",
         component: Schedule,
         layout: "/admin",
-      }, 
-      {
-        path: "/Timeline",
-        name: "Timeline",
-        rtlName: "عالتسعير",
-        mini: "TM",
-        rtlMini: "ع",
-        component: Timeline,
-        layout: "/admin"
       }, 
     ]
   },
@@ -103,21 +106,22 @@ const routes = [
     rtlName: "صفحات",
     icon: "tim-icons icon-settings",
     state: "pagesCollapse",
+    invisible: true,
     views: [    
       {
         path: "/Login",
         name: "Login",
         rtlName: "عالتسعير",
-        mini: "DW",
+        mini: "LG",
         rtlMini: "ع",
         component: Login,
-        layout: "/auth"
+        layout: "/auth",
       },   
       {
         path: "/Register",
         name: "Register",
         rtlName: "عالتسعير",
-        mini: "DW",
+        mini: "RE",
         rtlMini: "ع",
         component: Register,
         layout: "/auth"
@@ -125,6 +129,29 @@ const routes = [
 
     ]
   },
+  {
+    collapse: true,
+    name: "Gallery",
+    rtlName: "صفحات",
+    icon: "tim-icons icon-camera-18",
+    state: "pagesCollapse",
+    views: [    
+      {
+        path: "/Gallery",
+        name: "Pictures Deposit",
+        rtlName: "عالتسعير",
+        mini: "PD",
+        rtlMini: "ع",
+        component: Gallery,
+        layout: "/admin",
+      },   
+    ]
+  },
+
+
+
 ];
+
+//if(prop.invisible) return null;
 
 export default routes;

@@ -1,6 +1,13 @@
 import React from "react";
+import BigCalendar from 'react-big-calendar';
+import moment from 'moment';
+import SweetAlert from 'react-bootstrap-sweetalert';
 
-// reactstrap components
+import { graphql, ApolloProvider, Query } from 'react-apollo';
+import ApolloClient from 'apollo-boost';
+import { InMemoryCache } from 'apollo-cache-inmemory';
+import gql from 'graphql-tag';
+
 import {
   Badge,
   Card,
@@ -12,11 +19,218 @@ import {
   Row,
   Col
 } from "reactstrap";
+import { FormGroup } from "@material-ui/core";
 
-class Timeline extends React.Component {
+
+const token = localStorage.getItem('auth-token');
+const client = new ApolloClient({
+  cache: new InMemoryCache(),
+  uri: 'http://localhost:3000/graphql',
+  headers: {
+    authorization: token ? `Bearer ${token}` : "",
+  }
+});
+
+const localizer = BigCalendar.momentLocalizer(moment);
+
+const getScheduleList = gql`
+query getScheduleList($first: Int, $offset: Int) {
+	schedules(first: $first, offset: $offset) {
+        ScheduleId
+        DateSold
+        Address  
+        City
+        StateName
+        ZipCode 
+        GoogleMaps
+        CustomerName
+        CustomerPhone  
+        Information
+        DateWalkthruSchedule
+        ProjectManager
+        DateWalkthruExecution
+        WalkInformation
+        ConcretePad
+        DateConcretePadScheduled
+        DateConcretePadScheduledFinish
+        DateConcreteStart
+        DateConcreteEnd
+        Permit
+        Supplier
+        Parts
+        Equipment
+        PathandPaint
+        DatePathandPaintStart
+        DatePathandPaintEnd
+        DateFinalWalkthruScheduled
+        ProjectFinalManager
+        DateFinalWalkthruExecution
+        WalkFinalInformation
+   
+        executions {
+          CustomerName
+          City
+          ExecutionId
+          DateScheduled
+          DateScheduledEnd
+          DateStart
+          DateEnd
+          InstallerNote
+        }
+	}
+}
+`
+
+const getTeam = gql`
+query getTeam($first: Int, $offset: Int) {
+	executions(first: $first, offset: $offset) {
+    CustomerName
+    City
+		ExecutionId
+		ScheduleId
+    DateScheduled
+    DateScheduledEnd
+    DateStart
+    DateEnd
+		teams {
+			id
+			name
+			email
+		}
+	}
+}
+`
+
+class TimelineSchedule extends React.Component {
+
+  constructor(props, context) {
+    super(props, context);
+    this.state = {
+      events: [
+        {
+          id: null,
+          start: new Date(),
+          end: new Date(moment().add(1, "days")),
+          title: "Some title"
+        }
+      ],
+      alert: null,
+      EventsReturn: [],
+      JobSelected: [],
+      GroupsUserListInstallerSelected: []
+
+    };
+    this.hideAlert = this.hideAlert.bind(this);
+    this.getScheduleList = this.getScheduleList.bind(this);
+    this.getTeam = this.getTeam.bind(this);
+  }
+
+
+  getScheduleList() {
+
+    client.query({
+      query: getScheduleList,
+      variables: {},
+    }).then(res => {
+      var listaSchedule = [res.data];
+      for (var i = 0; i < listaSchedule.length; i++) {
+        for (var j = 0; j < listaSchedule[i].schedules.length; j++) {
+          this.setState({ JobSelected: listaSchedule[i].schedules });
+          this.setState({ EventsReturn: listaSchedule[i].schedules[j].executions });
+        }
+      }
+    }).catch(error => {
+      this.setState({ msg: error.message });
+    });
+  }
+
+  getTeam() {
+    client.query({
+      query: getTeam,
+    }).then(res => {
+      var listaTeam = [res.data];
+      for (var i = 0; i < listaTeam.length; i++) {
+        for (var j = 0; j < listaTeam[i].executions.length; j++) {
+          for (var y = 0; y < listaTeam[i].executions[j].teams.length; j++) {
+          this.setState({ GroupsUserListInstallerSelected: listaTeam[i].executions[j].teams })
+        }
+      }
+      }
+    }).catch(error => {
+      this.setState({ msg: error.message });
+    });
+  }
+
+  componentDidMount() {
+    this.getScheduleList();
+    this.getTeam();
+  }
+
+  selectedEvent(event) {
+    alert(event.title);
+  }
+
+  addNewEventAlert(slotInfo) {
+    this.setState({
+      alert: (
+        <SweetAlert
+          input
+          showCancel
+          style={{ display: "block", marginTop: "-100px" }}
+          title="Input something"
+          onConfirm={(e) => this.addNewEvent(e, slotInfo)}
+          onCancel={() => this.hideAlert()}
+          confirmBtnBsStyle="info"
+          cancelBtnBsStyle="danger"
+        />
+      )
+    });
+  }
+
+  addNewEvent(e, slotInfo) {
+    var newEvents = this.state.events;
+    newEvents.push({
+      'title': e,
+      'start': slotInfo.start,
+      'end': slotInfo.end
+    })
+    this.setState({
+      alert: null,
+      events: newEvents
+    })
+  }
+
+  hideAlert() {
+    this.setState({
+      alert: null
+    });
+  }
+
+  eventColors(event, start, end, isSelected) {
+    var backgroundColor = "event-";
+    event.color ? (backgroundColor = backgroundColor + event.color) : (backgroundColor = backgroundColor + "default");
+    return {
+      className: backgroundColor
+    };
+  }
+
   render() {
+
+    let returnEvents = this.state.EventsReturn.map(function (event) {
+      return {
+        id: event.Execution,
+        title: event.CustomerName + "-" + event.City,
+        start: new Date(moment(event.DateScheduled)),
+        end: new Date(moment(event.DateScheduledEnd)),
+        // resourceId: event.ExecutionId,
+      };
+    })
+
+
+console.log(this.state.EventsReturn);
+
     return (
-      <>
+       <>
         <div className="content">
           <div className="header text-center">
             <h3 className="title">Timeline</h3>
@@ -25,12 +239,6 @@ class Timeline extends React.Component {
             <Col md="12">
               <Card className="card-timeline card-plain">
                 <CardBody>
-
-
-
-
-
-
                   <ul className="timeline">
                     <li className="timeline-inverted">
                       <div className="timeline-badge danger">
@@ -58,11 +266,6 @@ class Timeline extends React.Component {
                         </h6>
                       </div>
                     </li>
-
-
-
-
-
                     <li>
                       <div className="timeline-badge success">
                         <i className="tim-icons icon-user-run" />
@@ -85,13 +288,6 @@ class Timeline extends React.Component {
                         </div>
                       </div>
                     </li>
-
-
-
-
-
-
-                    
                     <li className="timeline-inverted">
                       <div className="timeline-badge info">
                         <i className="tim-icons icon-notes" />
@@ -179,8 +375,10 @@ class Timeline extends React.Component {
           </Row>
         </div>
       </>
+
+        
     );
   }
 }
 
-export default Timeline;
+export default TimelineSchedule;

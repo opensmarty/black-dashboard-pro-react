@@ -1,218 +1,338 @@
 import React from "react";
-import axios from "axios";
-import moment from "moment";
-import Moment from "react-moment";
+import BigCalendar from 'react-big-calendar';
+import moment from 'moment';
+import SweetAlert from 'react-bootstrap-sweetalert';
 
-import Calendar from 'react-calendar';
-// reactstrap components
+import { graphql, ApolloProvider, Query } from 'react-apollo';
+import ApolloClient from 'apollo-boost';
+import { InMemoryCache } from 'apollo-cache-inmemory';
+import gql from 'graphql-tag';
+import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 import {
-  BreadcrumbItem,
-  Button,
-  ButtonGroup,
-  Card,
-  CardHeader,
-  CardBody,
-  UncontrolledCollapse,
-  Label,
-  FormGroup,
-  Input,
-  Row,
-  Col,
-} from "reactstrap";
 
+  Card,
+  CardBody,
+  UncontrolledTooltip,
+  Row,
+  Col
+} from "reactstrap";
+import { FormGroup } from "@material-ui/core";
+
+
+const DnDCalendar = withDragAndDrop(BigCalendar);
+
+const token = localStorage.getItem('auth-token');
+const client = new ApolloClient({
+  cache: new InMemoryCache(),
+  uri: 'http://localhost:3000/graphql',
+  headers: {
+    authorization: token ? `Bearer ${token}` : "",
+  }
+});
+
+const localizer = BigCalendar.momentLocalizer(moment);
+
+const getScheduleList = gql`
+query getScheduleList($first: Int, $offset: Int) {
+	schedules(first: $first, offset: $offset) {
+        ScheduleId
+        DateSold
+        Address  
+        City
+        StateName
+        ZipCode 
+        GoogleMaps
+        CustomerName
+        CustomerPhone  
+        Information
+        DateWalkthruSchedule
+        ProjectManager
+        DateWalkthruExecution
+        WalkInformation
+        ConcretePad
+        DateConcretePadScheduled
+        DateConcretePadScheduledFinish
+        DateConcreteStart
+        DateConcreteEnd
+        Permit
+        Supplier
+        Parts
+        Equipment
+        PathandPaint
+        DatePathandPaintStart
+        DatePathandPaintEnd
+        DateFinalWalkthruScheduled
+        ProjectFinalManager
+        DateFinalWalkthruExecution
+        WalkFinalInformation
+   
+        executions {
+          CustomerName
+          City
+          ExecutionId
+          DateScheduled
+          DateScheduledEnd
+          DateStart
+          DateEnd
+          InstallerNote
+        }
+	}
+}
+`
+
+const getTeam = gql`
+query getTeam($first: Int, $offset: Int) {
+	executions(first: $first, offset: $offset) {
+    CustomerName
+    City
+		ExecutionId
+		ScheduleId
+    DateScheduled
+    DateScheduledEnd
+    DateStart
+    DateEnd
+		teams {
+			id
+			name
+			email
+		}
+	}
+}
+`
 class Schedule extends React.Component {
 
   constructor(props, context) {
     super(props, context);
     this.state = {
+      events: [
+        {
+          id: null,
+          start: new Date(),
+          end: new Date(moment().add(1, "days")),
+          title: "Some title"
+        }
+      ],
+      alert: null,
+      EventsReturn: [],
+      JobSelected: [],
+      GroupsUserListInstallerSelected: []
 
-      DateStart: new Date(),
-
-      //lista todos os schedules
-      lista: [],
-      teamSelected: [],
-
-
-      teamScheduled: [],
-
-      //controle modal
-      openedCollapses: ["collapseOne"]
     };
-
-    this.setDateStart = this.setDateStart.bind(this);
+    this.hideAlert = this.hideAlert.bind(this);
+    this.getScheduleList = this.getScheduleList.bind(this);
+    this.getTeam = this.getTeam.bind(this);
+    this.onEventDrop = this.onEventDrop.bind(this);
+    this.onEventResize = this.onEventResize.bind(this);
   }
 
-  setDateStart(evento) {
-    this.setState({ DateStart: evento });
-    var data = {
-      DateStart: this.state.DateStart,
-    };
+  getScheduleList() {
 
-    axios.post('http://localhost:5000/api/schedule/selectByDate/', data)
-      //axios.post('https://app-back-obie.herokuapp.com/api/schedule/selectByDate/', data)
-      .then(res => {
-
-        this.setState({ lista: [] });
-        this.setState({ lista: res.data });
-
-
-     
-
-
-
-
-
-
-      })
-      .catch(error => {
-        console.log(error);
-      });
+    client.query({
+      query: getScheduleList,
+      variables: {},
+    }).then(res => {
+      var listaSchedule = [res.data];
+      for (var i = 0; i < listaSchedule.length; i++) {
+        for (var j = 0; j < listaSchedule[i].schedules.length; j++) {
+         this.setState({ JobSelected: listaSchedule[i].schedules });
+        }
+      }
+    }).catch(error => {
+      this.setState({ msg: error.message });
+    });
   }
 
+  getTeam() {
+    client.query({
+      query: getTeam,
+    }).then(res => {
+      var listaTeam = [res.data];
+      for (var i = 0; i < listaTeam.length; i++) {
+        for (var j = 0; j < listaTeam[i].executions.length; j++) {
 
 
+          this.setState({ EventsReturn: listaTeam[i].executions });
 
+          for (var y = 0; y < listaTeam[i].executions[j].teams.length; j++) {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-  setTeamSelected() {
-    axios.get('http://localhost:5000/api/schedule/team/')
-      .then(res => {
-        this.setState({ teamScheduled: res.data });
-      })
-      .catch(error => {
-        console.log(error);
-      });
+            this.setState({ GroupsUserListInstallerSelected: listaTeam[i].executions[j].teams })
+            
+          }
+        }
+      }
+    }).catch(error => {
+      this.setState({ msg: error.message });
+    });
   }
 
-  //Ao abrir a página executará funções
   componentDidMount() {
-
-    this.setTeamSelected();
-  
+    this.getScheduleList();
+    this.getTeam();
   }
 
-  collapsesToggle = collapse => {
-    let openedCollapses = this.state.openedCollapses;
-    if (openedCollapses.includes(collapse)) {
-      this.setState({
-        openedCollapses: []
-      });
-    } else {
-      this.setState({
-        openedCollapses: [collapse]
-      });
-    }
+  selectedEvent(event) {
+    console.log(event);
+  }
+
+  addNewEventAlert(slotInfo) {
+    this.setState({
+
+
+
+
+
+      alert: (
+        <SweetAlert
+          input
+          showCancel
+          style={{ display: "block", marginTop: "-100px" }}
+          title="Input something"
+          onConfirm={(e) => this.addNewEvent(e, slotInfo)}
+          onCancel={() => this.hideAlert()}
+          confirmBtnBsStyle="info"
+          cancelBtnBsStyle="danger"
+        />
+      )
+    });
+
+
+
+
+
+  }
+
+
+  //********************  CALENDAR ****************************/
+
+  onEventResize = (type, { event, start, end, allDay }) => {
+    this.setState(state => {
+      state.events[0].start = start;
+      state.events[0].end = end;
+      return { events: state.events };
+    });
+
+    console.log(this.state.events)
   };
 
+  onEventDrop = ({ event, start, end, allDay }) => {
+    console.log(start);
+  };
+
+
+
+  moveEvent({ event, start, end, isAllDay: droppedOnAllDaySlot }) {
+    const { events } = this.state
+
+    const idx = events.indexOf(event)
+    let allDay = event.allDay
+
+    if (!event.allDay && droppedOnAllDaySlot) {
+      allDay = true
+    } else if (event.allDay && !droppedOnAllDaySlot) {
+      allDay = false
+    }
+
+    const updatedEvent = { ...event, start, end, allDay }
+
+    const nextEvents = [...events]
+    nextEvents.splice(idx, 1, updatedEvent)
+
+    this.setState({
+      events: nextEvents,
+    })
+
+    // alert(`${event.title} was dropped onto ${updatedEvent.start}`)
+  }
+
+
+
+
+
+
+
+
+
+  addNewEvent(e, slotInfo) {
+    var newEvents = this.state.events;
+    newEvents.push({
+      'title': e,
+      'start': slotInfo.start,
+      'end': slotInfo.end
+    })
+    this.setState({
+      alert: null,
+      events: newEvents
+    })
+  }
+
+  hideAlert() {
+    this.setState({
+      alert: null
+    });
+  }
+
+  eventColors(event, start, end, isSelected) {
+    var backgroundColor = "event-";
+    event.color ? (backgroundColor = backgroundColor + event.color) : (backgroundColor = backgroundColor + "default");
+    return {
+      className: backgroundColor
+    };
+  }
+
   render() {
+
+  const resourceMap = [
+    { resourceId: 1, resourceTitle: 'My Schedule ' },
+    { resourceId: 2, resourceTitle: 'Ben 10' },
+    { resourceId: 3, resourceTitle: 'MAX' },
+  ]
+
+
+    let returnEvents = this.state.EventsReturn.map(function (event) {
+      return {
+        id: event.ExecutionId,
+        title: event.CustomerName + "-" + event.City,
+        start: new Date(moment(event.DateScheduled)),
+        end: new Date(moment(event.DateScheduledEnd)),
+       resourceId: event.ExecutionId,
+      };
+    })
+
     return (
       <>
         <div className="content">
-          <Row>
-            <ol className="breadcrumb bg-transparent ml-3">
-              <BreadcrumbItem>
-                <a href="#pablo" onClick={e => e.preventDefault()}>
-                  Home
-                </a>
-              </BreadcrumbItem>
-              <BreadcrumbItem>
-                <a href="#pablo" onClick={e => e.preventDefault()}>
-                  {" "}
-                  Schedule
-                </a>
-              </BreadcrumbItem>
-              <BreadcrumbItem className="active">Plan</BreadcrumbItem>
-            </ol>
-          </Row>
-          <Row>
-            <Col>
+          <Row className="mt-12">
+
+            <Col md="12">
               <Card >
                 <CardBody>
-                  <h3>Search Date</h3>
-                  <FormGroup>
-                    <Calendar
-                      start
-                      onChange={this.setDateStart}
-                      value={this.state.DateStart}
-                    />
-                  </FormGroup>
+                  <div>
+                    <FormGroup>
+                      {this.state.alert}
+
+
+
+
+
+                      <DnDCalendar
+                        selectable
+                        localizer={localizer}
+                        events={returnEvents}
+                        defaultView='month'
+                        scrollToTime={new Date(1970, 1, 1, 6)}
+                        defaultDate={new Date()}
+                        onSelectEvent={event => this.selectedEvent(event)}
+                        onSelectSlot={(slotInfo) => this.addNewEventAlert(slotInfo)}
+                        eventPropGetter={this.eventColors}
+
+                        onEventDrop={this.onEventDrop}
+                        onEventResize={this.onEventResize}
+                        resizable
+                        style={{ height: "100vh" }}
+                      />
+                    </FormGroup>
+                  </div>
                 </CardBody>
-                <CardHeader>
-                  <Col xs={12} md={12}>
-                    {
-                      this.state.lista.map(function (schedule, index) {
-
-                        return (
-
-                          <blockquote className="blockquote">
-                            <h4><b>Job Number: </b> {schedule.ScheduleId}</h4>
-                            <h4><b>Name Installer: </b> {schedule.Name}</h4>
-                            <h4><b>Date Start: </b> <Moment format="DD-MM-YYYY">{schedule.DateStart}</Moment></h4>
-                            <h4><b>Forecast: </b><Moment format="DD-MM-YYYY">{schedule.DateEnd}</Moment></h4>
-                            <h4><b>Contact Name: </b> {schedule.ContactName}</h4>
-                            <h4><b>Address: </b> {schedule.Address} - {schedule.City} - {schedule.StateDesc}</h4>
-                            <Button className="btn-icon btn-simple" color="success" size="sm" href="#collapseExample" id="linkToggler">
-                              <i className="fa fa-info"></i>
-                            </Button>{' '}
-                            <Button className="btn-icon btn-simple" color="success" size="sm" href="#collapseExample" id="linkTogglerInformations">
-                              <i className="fa fa-comments"></i>
-                            </Button>{' '}
-                            {schedule.Ident === 2 &&
-                              <Button className="btn-icon btn-simple" color="success" size="sm" href="#collapseExample" id="linkTogglerInformations">
-                                <i className="fa fa-barcode"></i>
-                              </Button>
-                            }
-                            <UncontrolledCollapse toggler="#linkToggler,#buttonToggler">
-                              <Card>
-                                <CardBody>
-                                  <h4><b>Job Description:</b> {schedule.JobDescription} </h4>
-                                </CardBody>
-                              </Card>
-                            </UncontrolledCollapse>
-
-                            <UncontrolledCollapse toggler="#linkTogglerInformations,#buttonToggler">
-                              <Card>
-                                <CardBody>
-                                  <h4><b>Job Informations:</b> {schedule.Information} </h4>
-                                </CardBody>
-                              </Card>
-                            </UncontrolledCollapse>
-                          </blockquote>
-
-                        );
-                      })
-                    }
-                  </Col>
-                </CardHeader>
               </Card >
             </Col>
           </Row>
@@ -221,5 +341,6 @@ class Schedule extends React.Component {
     );
   }
 }
+
 
 export default Schedule;

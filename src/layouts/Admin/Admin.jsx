@@ -13,7 +13,7 @@ import FixedPlugin from "components/FixedPlugin/FixedPlugin.jsx";
 
 import routes from "routes.js";
 
-import logo from "assets/img/react-logo.png";
+import logo from "assets/img/mini-logo.png";
 
 
 var ps;
@@ -172,8 +172,8 @@ class Admin extends React.Component {
           routes={routes}
           activeColor={this.state.activeColor}
           logo={{
-            outterLink: "https://carlosgatti.github.io",
-            text: "CSA - Gatti",
+            outterLink: "http://obiehvac.com",
+            text: "Obie Comfort",
             imgSrc: logo
           }}
           closeSidebar={this.closeSidebar}

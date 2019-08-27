@@ -21,6 +21,8 @@ class Sidebar extends React.Component {
     let initialState = {};
     routes.map((prop, key) => {
 
+
+
       if (prop.collapse) {
         initialState = {
           [prop.state]: this.getCollapseInitialState(prop.views),
@@ -52,6 +54,10 @@ class Sidebar extends React.Component {
   createLinks = routes => {
     const { rtlActive } = this.props;
     return routes.map((prop, key) => {
+
+
+      if(prop.invisible) return null;
+
       if (prop.redirect) {
         return null;
       }
@@ -139,9 +145,10 @@ class Sidebar extends React.Component {
     }
   }
   render() {
-    const { activeColor, logo } = this.props;
+    const { activeColor, logo, invisible } = this.props;
     let logoImg = null;
     let logoText = null;
+
     if (logo !== undefined) {
       if (logo.outterLink !== undefined) {
         logoImg = (
@@ -189,7 +196,7 @@ class Sidebar extends React.Component {
         );
       }
     }
-    return (
+    return (   
       <div className="sidebar" data={activeColor}>
         <div className="sidebar-wrapper" ref="sidebar">
           {logoImg !== null || logoText !== null ? (
